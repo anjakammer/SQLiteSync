@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Bassa</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="editText_hint_title">Title</string>
+    <string name="editText_hint_question">Question</string>
+    <string name="button_add_question">add this question</string>
+
+    // Error Messages
+    <string name="editText_errorMessage">Field should not be empty.</string>
+
+    //ContextMenu
+    <string name="cab_delete">Delete question</string>
+    <string name="cab_change">Change question</string>
+    <string name="cab_checked_string">selected</string>
+
+    // Dialog
+    <string name="dialog_title">Change Question</string>
+    <string name="dialog_title_title">Title:</string>
+    <string name="dialog_title_question">Question:</string>
+    <string name="dialog_button_positive">Done</string>
+    <string name="dialog_button_negative">Cancel</string>
+</resources>
