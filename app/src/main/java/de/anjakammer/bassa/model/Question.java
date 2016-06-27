@@ -1,4 +1,4 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.model;
 
 import java.util.List;
 
@@ -61,6 +61,6 @@ public class Question {
 
     @Override
     public String toString() {
-        return title + "\n" + description;
+        return title + "\n" + description+ "\n" + getAnswers().get(1).toString();
     }
 }
