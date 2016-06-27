@@ -61,6 +61,10 @@ public class Question {
 
     @Override
     public String toString() {
-        return title + "\n" + description+ "\n" + getAnswers().get(1).toString();
+        String str = title + ": " + description + "\n Answers: \n";
+        for (Answer answer: getAnswers()) {
+            str += answer.toString()+ "\n";
+        }
+        return str;
     }
 }
