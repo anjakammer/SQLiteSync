@@ -54,10 +54,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Log.d(LOG_TAG, "Die Datenquelle wird geöffnet.");
         dataSource.open();
 
-        Log.d(LOG_TAG, "Folgende Einträge sind in der Datenbank vorhanden:");
         showAllListEntries();
         showAllDeletedListEntries();
     }

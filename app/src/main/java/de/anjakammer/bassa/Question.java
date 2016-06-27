@@ -52,8 +52,6 @@ public class Question {
 
     @Override
     public String toString() {
-        String output = title + "\n" + description;
-
-        return output;
+        return title + "\n" + description;
     }
 }
