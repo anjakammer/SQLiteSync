@@ -1,12 +1,14 @@
 package de.anjakammer.bassa;
 
+import java.util.List;
+
 public class Question {
 
     private String description;
     private String title;
     private long id;
     private boolean isDeleted;
-
+    private List<Answer> answers;
 
     public Question(String description, String title, long id, boolean isDeleted) {
         this.description = description;
@@ -14,7 +16,6 @@ public class Question {
         this.id = id;
         this.isDeleted = isDeleted;
     }
-
 
     public String getDescription() {
         return description;
@@ -46,8 +47,16 @@ public class Question {
         return isDeleted;
     }
 
-    public void setIsDeleted (boolean isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(List<Answer> answers) {
+        this.answers = answers;
     }
 
     @Override

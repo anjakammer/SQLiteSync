@@ -17,11 +17,18 @@ public class QuestionDataSource {
     private SQLiteDatabase database;
     private DBHandler dbHandler;
 
-    private String[] columns = {
+    private String[] questionColumns = {
             DBHandler.COLUMN_ID,
             DBHandler.COLUMN_DESCRIPTION,
             DBHandler.COLUMN_TITLE,
             DBHandler.COLUMN_ISDELETED
+    };
+
+    private String[] answerColumns = {
+            DBHandler.COLUMN_A_ID,
+            DBHandler.COLUMN_A_DESCRIPTION,
+            DBHandler.COLUMN_A_PARTICIPANT,
+            DBHandler.COLUMN_A_QUESTION_ID
     };
 
 
@@ -49,7 +56,7 @@ public class QuestionDataSource {
         long insertId = database.insert(DBHandler.TABLE_QUESTIONNAIRE, null, values);
 
         Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                columns, DBHandler.COLUMN_ID + "=" + insertId,
+                questionColumns, DBHandler.COLUMN_ID + "=" + insertId,
                 null, null, null, null);
 
         cursor.moveToFirst();
@@ -88,7 +95,7 @@ public class QuestionDataSource {
                 null);
 
         Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                columns, DBHandler.COLUMN_ID + "=" + id,
+                questionColumns, DBHandler.COLUMN_ID + "=" + id,
                 null, null, null, null);
 
         cursor.moveToFirst();
@@ -114,6 +121,19 @@ public class QuestionDataSource {
         return new Question(description, title, id, isDeleted);
     }
 
+    private Answer cursorToAnswer(Cursor cursor) {
+        int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_A_ID);
+        int idDescription = cursor.getColumnIndex(DBHandler.COLUMN_A_DESCRIPTION);
+        int idParticipant = cursor.getColumnIndex(DBHandler.COLUMN_A_PARTICIPANT);
+        int idQuestionID = cursor.getColumnIndex(DBHandler.COLUMN_A_QUESTION_ID);
+
+        String description = cursor.getString(idDescription);
+        String participant = cursor.getString(idParticipant);
+        long id = cursor.getLong(idIndex);
+        long question_id = cursor.getLong(idQuestionID);
+
+        return new Answer(description, participant, id, question_id);
+    }
 
     public List<Question> getAllQuestions() {
         List<Question> QuestionList = new ArrayList<>();
@@ -122,21 +142,44 @@ public class QuestionDataSource {
         String[] isFalse = new String[] {"0"};
 
         Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                columns, whereIsDeleted, isFalse, null, null, null);
+                questionColumns, whereIsDeleted, isFalse, null, null, null);
 
         cursor.moveToFirst();
-        Question Question;
+        Question question;
 
         while (!cursor.isAfterLast()) {
-            Question = cursorToQuestion(cursor);
-            QuestionList.add(Question);
-            Log.d(LOG_TAG, "ID: " + Question.getId() + ", Inhalt: " + Question.toString());
+            question = cursorToQuestion(cursor);
+            question.setAnswers(getRelatedAnswers(question.getId()));
+            QuestionList.add(question);
             cursor.moveToNext();
         }
 
         cursor.close();
 
         return QuestionList;
+    }
+
+    public List<Answer> getRelatedAnswers(long questionId) {
+        List<Answer> AnswerList = new ArrayList<>();
+
+        String whereQuestionID = "question_id = ?";
+        String[] questionID = new String[] {String.valueOf(questionId)};
+
+        Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
+                answerColumns, whereQuestionID, questionID, null, null, null);
+
+        cursor.moveToFirst();
+        Answer answer;
+
+        while (!cursor.isAfterLast()) {
+            answer = cursorToAnswer(cursor);
+            AnswerList.add(answer);
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+
+        return AnswerList;
     }
 
     public List<Question> getAllDeletedQuestions() {
@@ -146,15 +189,14 @@ public class QuestionDataSource {
         String[] isFalse = new String[] {"1"};
 
         Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                columns, whereIsDeleted, isFalse, null, null, null);
+                questionColumns, whereIsDeleted, isFalse, null, null, null);
 
         cursor.moveToFirst();
-        Question Question;
+        Question question;
 
         while (!cursor.isAfterLast()) {
-            Question = cursorToQuestion(cursor);
-            QuestionList.add(Question);
-            Log.d(LOG_TAG, "ID: " + Question.getId() + ",gelöschter Inhalt: " + Question.toString());
+            question = cursorToQuestion(cursor);
+            QuestionList.add(question);
             cursor.moveToNext();
         }
 
