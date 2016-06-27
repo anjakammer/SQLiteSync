@@ -19,7 +19,7 @@ public class QuestionDataSource {
 
     private String[] columns = {
             QuestionDbHelper.COLUMN_ID,
-            QuestionDbHelper.COLUMN_QUESTION,
+            QuestionDbHelper.COLUMN_DESCRIPTION,
             QuestionDbHelper.COLUMN_TITLE,
             QuestionDbHelper.COLUMN_ISDELETED
     };
@@ -41,9 +41,9 @@ public class QuestionDataSource {
         Log.d(LOG_TAG, "Datenbank mit Hilfe des DbHelpers geschlossen.");
     }
 
-    public Question createQuestion(String question, String title) {
+    public Question createQuestion(String description, String title) {
         ContentValues values = new ContentValues();
-        values.put(QuestionDbHelper.COLUMN_QUESTION, question);
+        values.put(QuestionDbHelper.COLUMN_DESCRIPTION, description);
         values.put(QuestionDbHelper.COLUMN_TITLE, title);
 
         long insertId = database.insert(QuestionDbHelper.TABLE_QUESTIONNAIRE, null, values);
@@ -55,25 +55,30 @@ public class QuestionDataSource {
         cursor.moveToFirst();
         Question Question = cursorToQuestion(cursor);
         cursor.close();
-
+        Log.d(LOG_TAG, "Eintrag  gespeichert! " + Question.toString());
         return Question;
     }
 
     public void deleteQuestion(Question Question) {
         long id = Question.getId();
+        int intValueIsDeleted = 1;
 
-        database.delete(QuestionDbHelper.TABLE_QUESTIONNAIRE,
+        ContentValues values = new ContentValues();
+        values.put(QuestionDbHelper.COLUMN_ISDELETED, intValueIsDeleted);
+
+        database.update(QuestionDbHelper.TABLE_QUESTIONNAIRE,
+                values,
                 QuestionDbHelper.COLUMN_ID + "=" + id,
                 null);
 
-        Log.d(LOG_TAG, "Eintrag gelöscht! ID: " + id + " Inhalt: " + Question.toString());
+        Log.d(LOG_TAG, "Eintrag als gelöscht gespeichert! ID: " + id + " Inhalt: " + Question.toString());
     }
 
     public Question updateQuestion(long id, String newQuestion, String newTitle, boolean newIsDeleted) {
         int intValueIsDeleted = (newIsDeleted) ? 1 : 0;
 
         ContentValues values = new ContentValues();
-        values.put(QuestionDbHelper.COLUMN_QUESTION, newQuestion);
+        values.put(QuestionDbHelper.COLUMN_DESCRIPTION, newQuestion);
         values.put(QuestionDbHelper.COLUMN_TITLE, newTitle);
         values.put(QuestionDbHelper.COLUMN_ISDELETED, intValueIsDeleted);
 
@@ -95,26 +100,29 @@ public class QuestionDataSource {
 
     private Question cursorToQuestion(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(QuestionDbHelper.COLUMN_ID);
-        int idQuestion = cursor.getColumnIndex(QuestionDbHelper.COLUMN_QUESTION);
+        int idQuestion = cursor.getColumnIndex(QuestionDbHelper.COLUMN_DESCRIPTION);
         int idTitle = cursor.getColumnIndex(QuestionDbHelper.COLUMN_TITLE);
         int idIsDeleted = cursor.getColumnIndex(QuestionDbHelper.COLUMN_ISDELETED);
 
-        String question = cursor.getString(idQuestion);
+        String description = cursor.getString(idQuestion);
         String title = cursor.getString(idTitle);
         long id = cursor.getLong(idIndex);
-        int intValueChecked = cursor.getInt(idIsDeleted);
+        int intValueIsDeleted = cursor.getInt(idIsDeleted);
 
-        boolean isDeleted = (intValueChecked != 0);
+        boolean isDeleted = (intValueIsDeleted != 0);
 
-        return new Question(question, title, id, isDeleted);
+        return new Question(description, title, id, isDeleted);
     }
 
 
     public List<Question> getAllQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
+        String whereIsDeleted = "isDeleted = ?";
+        String[] isFalse = new String[] {"0"};
+
         Cursor cursor = database.query(QuestionDbHelper.TABLE_QUESTIONNAIRE,
-                columns, null, null, null, null, null);
+                columns, whereIsDeleted, isFalse, null, null, null);
 
         cursor.moveToFirst();
         Question Question;
@@ -123,6 +131,30 @@ public class QuestionDataSource {
             Question = cursorToQuestion(cursor);
             QuestionList.add(Question);
             Log.d(LOG_TAG, "ID: " + Question.getId() + ", Inhalt: " + Question.toString());
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+
+        return QuestionList;
+    }
+
+    public List<Question> getAllDeletedQuestions() {
+        List<Question> QuestionList = new ArrayList<>();
+
+        String whereIsDeleted = "isDeleted = ?";
+        String[] isFalse = new String[] {"1"};
+
+        Cursor cursor = database.query(QuestionDbHelper.TABLE_QUESTIONNAIRE,
+                columns, whereIsDeleted, isFalse, null, null, null);
+
+        cursor.moveToFirst();
+        Question Question;
+
+        while (!cursor.isAfterLast()) {
+            Question = cursorToQuestion(cursor);
+            QuestionList.add(Question);
+            Log.d(LOG_TAG, "ID: " + Question.getId() + ",gelöschter Inhalt: " + Question.toString());
             cursor.moveToNext();
         }
 

@@ -2,26 +2,26 @@ package de.anjakammer.bassa;
 
 public class Question {
 
-    private String question;
+    private String description;
     private String title;
     private long id;
     private boolean isDeleted;
 
 
-    public Question(String question, String title, long id, boolean isDeleted) {
-        this.question = question;
+    public Question(String description, String title, long id, boolean isDeleted) {
+        this.description = description;
         this.title = title;
         this.id = id;
         this.isDeleted = isDeleted;
     }
 
 
-    public String getQuestion() {
-        return question;
+    public String getDescription() {
+        return description;
     }
 
-    public void setQuestion (String question) {
-        this.question = question;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 
@@ -52,7 +52,7 @@ public class Question {
 
     @Override
     public String toString() {
-        String output = title + "\n" + question;
+        String output = title + "\n" + description;
 
         return output;
     }

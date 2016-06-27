@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private QuestionDataSource dataSource;
     private ListView mQuestionsListView;
+    private ListView mDeletedQuestionsListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         dataSource = new QuestionDataSource(this);
 
         initializeQuestionsListView();
+        initializeDeletedQuestionsListView();
 
         activateAddButton();
         initializeContextualActionBar();
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(LOG_TAG, "Folgende Einträge sind in der Datenbank vorhanden:");
         showAllListEntries();
+        showAllDeletedListEntries();
     }
 
     @Override
@@ -69,12 +72,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAllListEntries () {
         List<Question> QuestionList = dataSource.getAllQuestions();
-
         ArrayAdapter<Question> adapter = (ArrayAdapter<Question>) mQuestionsListView.getAdapter();
 
         adapter.clear();
         adapter.addAll(QuestionList);
         adapter.notifyDataSetChanged();
+    }
+
+    private void showAllDeletedListEntries () {
+        List<Question> DeletedQuestionList = dataSource.getAllDeletedQuestions();
+        ArrayAdapter<Question> adapterForDeleted = (ArrayAdapter<Question>) mDeletedQuestionsListView.getAdapter();
+
+        adapterForDeleted.clear();
+        adapterForDeleted.addAll(DeletedQuestionList);
+        adapterForDeleted.notifyDataSetChanged();
     }
 
     private void initializeQuestionsListView() {
@@ -87,18 +98,6 @@ public class MainActivity extends AppCompatActivity {
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 emptyListForInitialization) {
-
-            // Wird immer dann aufgerufen, wenn der übergeordnete ListView die Zeile neu zeichnen muss
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-
-                View view =  super.getView(position, convertView, parent);
-                TextView textView = (TextView) view;
-
-                Question memo = (Question) mQuestionsListView.getItemAtPosition(position);
-
-                return view;
-            }
         };
 
         mQuestionsListView.setAdapter(QuestionArrayAdapter);
@@ -106,41 +105,66 @@ public class MainActivity extends AppCompatActivity {
         mQuestionsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Question question = (Question) adapterView.getItemAtPosition(position);
+                Question Question = (Question) adapterView.getItemAtPosition(position);
 
                 // TODO Vorschau anzeigen / Question Preview
             }
         });
+    }
+
+    private void initializeDeletedQuestionsListView() {
+        List<Question> emptyListForInitialization = new ArrayList<>();
+
+        mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_questions);
+        // Erstellen des ArrayAdapters für unseren ListView
+        ArrayAdapter<Question> DeletedQuestionArrayAdapter = new ArrayAdapter<Question> (
+                this,
+                android.R.layout.simple_list_item_activated_1,
+                emptyListForInitialization) {
+
+            // Wird immer dann aufgerufen, wenn der übergeordnete ListView die Zeile neu zeichnen muss
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view =  super.getView(position, convertView, parent);
+                TextView textView = (TextView) view;
+
+                textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                textView.setTextColor(Color.rgb(175,175,175));
+                return view;
+            }
+        };
+
+        mDeletedQuestionsListView.setAdapter(DeletedQuestionArrayAdapter);
 
     }
 
     private void activateAddButton() {
         Button buttonAddProduct = (Button) findViewById(R.id.button_add_question);
         final EditText editTextTitle = (EditText) findViewById(R.id.editText_title);
-        final EditText editTextQuestion = (EditText) findViewById(R.id.editText_question);
+        final EditText editTextDescription = (EditText) findViewById(R.id.editText_question);
 
-        if(buttonAddProduct != null && editTextTitle != null && editTextQuestion != null ) {
+        if(buttonAddProduct != null && editTextTitle != null && editTextDescription != null ) {
 
             buttonAddProduct.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
                     String title = editTextTitle.getText().toString();
-                    String question = editTextQuestion.getText().toString();
+                    String description = editTextDescription.getText().toString();
 
                     if (TextUtils.isEmpty(title)) {
                         editTextTitle.setError(getString(R.string.editText_errorMessage));
                         return;
                     }
-                    if (TextUtils.isEmpty(question)) {
-                        editTextQuestion.setError(getString(R.string.editText_errorMessage));
+                    if (TextUtils.isEmpty(description)) {
+                        editTextDescription.setError(getString(R.string.editText_errorMessage));
                         return;
                     }
 
                     editTextTitle.setText("");
-                    editTextQuestion.setText("");
+                    editTextDescription.setText("");
 
-                    dataSource.createQuestion(question, title);
+                    dataSource.createQuestion(description, title);
 
                     InputMethodManager inputMethodManager;
                     inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -217,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         showAllListEntries();
+                        showAllDeletedListEntries();
                         mode.finish();
                         break;
 
@@ -285,8 +310,8 @@ public class MainActivity extends AppCompatActivity {
         final EditText editTextNewTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
         editTextNewTitle.setText(Question.getTitle());
 
-        final EditText editTextNewQuestion = (EditText) dialogsView.findViewById(R.id.editText_new_question);
-        editTextNewQuestion.setText(Question.getQuestion());
+        final EditText editTextNewDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
+        editTextNewDescription.setText(Question.getDescription());
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_title)
@@ -294,16 +319,16 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
                         String title = editTextNewTitle.getText().toString();
-                        String question = editTextNewQuestion.getText().toString();
+                        String description = editTextNewDescription.getText().toString();
 
-                        if ((TextUtils.isEmpty(title)) || (TextUtils.isEmpty(question))) {
+                        if ((TextUtils.isEmpty(title)) || (TextUtils.isEmpty(description))) {
                             Log.d(LOG_TAG, "Ein Eintrag enthielt keinen Text. Daher Abbruch der Änderung.");
                             return;
                         }
 
 
                         // An dieser Stelle schreiben wir die geänderten Daten in die SQLite Datenbank
-                        Question updatedQuestion = dataSource.updateQuestion(Question.getId(), question, title, Question.isDeleted());
+                        Question updatedQuestion = dataSource.updateQuestion(Question.getId(), description, title, Question.isDeleted());
                         Log.d(LOG_TAG, "Alter Eintrag - ID: " + Question.getId() + " Inhalt: " + Question.toString());
                         Log.d(LOG_TAG, "Neuer Eintrag - ID: " + updatedQuestion.getId() + " Inhalt: " + updatedQuestion.toString());
 

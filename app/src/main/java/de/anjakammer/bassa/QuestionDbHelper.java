@@ -14,14 +14,14 @@ public class QuestionDbHelper extends SQLiteOpenHelper{
     public static final String TABLE_QUESTIONNAIRE = "Questionnaire";
 
     public static final String COLUMN_ID = "_id";
-    public static final String COLUMN_QUESTION = "question";
+    public static final String COLUMN_DESCRIPTION = "question";
     public static final String COLUMN_TITLE = "title";
     public static final String COLUMN_ISDELETED = "isDeleted";
 
     public static final String SQL_CREATE =
             "CREATE TABLE " + TABLE_QUESTIONNAIRE +
                     "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_QUESTION + " TEXT NOT NULL, " +
+                    COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
                     COLUMN_TITLE + " TEXT NOT NULL, " +
                     COLUMN_ISDELETED + " BOOLEAN NOT NULL DEFAULT 0);";
     public static final String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
