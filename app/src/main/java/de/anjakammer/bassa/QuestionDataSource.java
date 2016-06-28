@@ -44,8 +44,9 @@ public class QuestionDataSource {
         try{
             createAnswer("not answered yet", "Peer1", question_id);
             createAnswer("not answered yet", "Peer2", question_id);
-        }catch (Exception e){
-            Log.e(LOG_TAG, "createAnswer failed.");
+        }catch (Exception ex){
+            ex.printStackTrace();
+            Log.e(LOG_TAG, "createAnswer failed: " + ex.getMessage());
         }
     }
 

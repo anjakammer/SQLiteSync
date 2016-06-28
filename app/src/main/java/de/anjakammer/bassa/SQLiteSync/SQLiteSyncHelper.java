@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.anjakammer.bassa.DBHandler;
 
 
 public class SQLiteSyncHelper {
@@ -29,8 +28,13 @@ public class SQLiteSyncHelper {
                     "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_KEY + " TEXT NOT NULL, " +
                     COLUMN_VALUE + " TEXT NOT NULL ;";
+    public static final String SETTINGS_DROP = "DROP TABLE IF EXISTS " + TABLE_SETTINGS;
     private static final String KEY_IS_MASTER = "isMaster";
     private static final String KEY_DB_ID = "DB_ID";
+    private static final String KEY_TABLES = "tables";
+    private static final String KEY_LASTSYNCTIME = "lastSyncTime";
+    private static final String COLUMNE_IS_DELETED = "isDeleted";
+    private static final String COLUMNE_TIMESTAMP = "timestamp";
 
     public SQLiteSyncHelper(SQLiteDatabase db, boolean isMaster, String dbID){
         this.db = db;
@@ -50,11 +54,11 @@ public class SQLiteSyncHelper {
 
     private void prepareSyncableDB(boolean isMaster, String dbID){
         try {
-            Log.d(LOG_TAG, "Die Tabelle wird mit SQL-Befehl: " + SETTINGS_CREATE + " angelegt.");
             this.db.execSQL(SETTINGS_CREATE);
         }
-        catch (Exception ex) {
-            Log.e(LOG_TAG, "Fehler beim Anlegen der Tabelle: " + ex.getMessage());
+        catch (Exception e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "creating failed for table: "+ TABLE_SETTINGS + e.getMessage());
         }
 
         // Insert isMaster Key-Value pair
@@ -72,22 +76,32 @@ public class SQLiteSyncHelper {
     }
 
     public void tearDownSyncableDB(){
-        // TODO execute drop settings table
+        db.execSQL(SETTINGS_DROP);
     }
 
-    public JSONObject getDelta(JSONObject peer, SQLiteDatabase db) throws JSONException {
+    public JSONObject getDelta(JSONObject peer) {
+
         // TODO test-data from peer delta
-        peer.put("lastSyncTime","1462109540");
         String lastSyncTime = "1462109540";
+        peer = new JSONObject();
+        try {
+            peer.put(KEY_LASTSYNCTIME,lastSyncTime);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error for writing test-peer JSON: " + e.getMessage());
+        }
         // TODO test-data from peer delta
 
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
-        List<String> tables = getTableNames(db);
+
+        List<String> tables = getSyncableTableNames();
         for (String table: tables) {
-            Cursor cursor = db.query(
-                    table, new String[] {"last_updated"},"last_updated >= '?'",new String[] {lastSyncTime}
+            Cursor cursor = this.db.query(
+                    table, new String[] {COLUMNE_TIMESTAMP},COLUMNE_TIMESTAMP +" >= '?'",
+                    new String[] {lastSyncTime}
                     ,null, null, null
             );
+            // TODO fill delta JSONObject
             cursor.close();
         }
         return delta;
@@ -97,19 +111,20 @@ public class SQLiteSyncHelper {
     private JSONObject prepareDeltaObject(String lastSyncTime, String dbId){
         JSONObject delta = new JSONObject();
         try {
-            delta.put("DB-ID", dbId);
-            delta.put("isMaster",String.valueOf(isMaster));
-            delta.put("lastSyncTime",lastSyncTime);
-            delta.put("tables",new JSONArray());
-        } catch (JSONException e) {
-            e.printStackTrace();
+            delta.put(KEY_DB_ID, dbId);
+            delta.put(KEY_IS_MASTER,String.valueOf(this.isMaster));
+            delta.put(KEY_LASTSYNCTIME,lastSyncTime);
+            delta.put(KEY_TABLES,new JSONArray());
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error while preparing delta: " + ex.getMessage());
         }
         return delta;
     }
 
     private String getDbId(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {"DB-ID"}
+                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {KEY_DB_ID}
                 ,null, null, null
         );
         cursor.moveToFirst();
@@ -119,22 +134,10 @@ public class SQLiteSyncHelper {
         return DbId;
     }
 
-    private String getLastUpdateTime(){
-        Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {"lastUpdateTime"}
-                ,null, null, null
-        );
-        cursor.moveToFirst();
-        int valueIndex = cursor.getColumnIndex("value");
-        String lastUpdateTime = cursor.getString(valueIndex);
-        cursor.close();
-        return lastUpdateTime;
-    }
-
-    public List<String> getTableNames(SQLiteDatabase db){
+    public List<String> getSyncableTableNames(){
         List<String> result = new ArrayList<>();
-        Cursor cursor = db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master", null);
-
+        Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master", null);
+        // TODO nur tabellen in die Liste schmeißen, die auch is_deleted und timestamp haben
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             result.add(cursor.getString(0));
@@ -145,6 +148,28 @@ public class SQLiteSyncHelper {
         return result;
     }
 
+    public void makeTableSyncable(String table){
+        addIsDeletedColumn(table);
+        addTimestampColumn(table);
+    }
+
+    private void addIsDeletedColumn(String table){
+        Cursor cursor = this.db.rawQuery("SELECT "+ COLUMNE_IS_DELETED +" FROM " + table , null);
+        cursor.moveToFirst();
+        if(cursor.getColumnCount() < 1){
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMNE_IS_DELETED + " INTEGER");
+        }
+        cursor.close();
+    }
+
+    private void addTimestampColumn(String table){
+        Cursor cursor = this.db.rawQuery("SELECT "+ COLUMNE_TIMESTAMP +" FROM " + table , null);
+        cursor.moveToFirst();
+        if(cursor.getColumnCount() < 1){
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMNE_TIMESTAMP + " TEXT");
+        }
+        cursor.close();
+    }
 
     public boolean isTableExisting(String table){
         Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = '" + table + "'", null);
@@ -160,7 +185,7 @@ public class SQLiteSyncHelper {
 
     public boolean isDbMaster(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {"isMaster"}
+                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {KEY_IS_MASTER}
                 ,null, null, null
         );
         cursor.moveToFirst();
