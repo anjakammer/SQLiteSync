@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class SQLiteSyncHelper {
 
@@ -17,16 +18,27 @@ public class SQLiteSyncHelper {
         this.isMaster = isMaster;
     }
 
-    public JSONArray getDelta(JSONArray peer, String[] tables, SQLiteDatabase db) throws JSONException {
-        JSONArray delta = new JSONArray();
-        String lastSyncTime = "GetValueFromPeerJSONArray";
+    public JSONObject getDelta(JSONObject peer, String[] tables, SQLiteDatabase db) throws JSONException {
+        // TODO test-data from peer delta
+        peer.put("lastSyncTime","1462109540");
+        String lastSyncTime = "1462109540";
+        // TODO test-data from peer delta
+
+        JSONObject delta = new JSONObject();
         for (String table: tables) {
             Cursor cursor = db.query(
-                    table,new String[] {"last_updated"},"last_updated >= '?'",new String[] {lastSyncTime}
+                    table, new String[] {"last_updated"},"last_updated >= '?'",new String[] {lastSyncTime}
                     ,null, null, null
             );
-            delta.put("cursor.toString()");
+            cursor.close();
         }
+
+        return delta;
+    }
+
+    private JSONObject prepareDelta(){
+        JSONObject delta = new JSONObject();
+
 
         return delta;
     }
@@ -38,6 +50,8 @@ public class SQLiteSyncHelper {
                 );
         cursor.moveToFirst();
         int valueIndex = cursor.getColumnIndex("value");
+        cursor.close();
+
         String lastUpdateTime = cursor.getString(valueIndex);
         return lastUpdateTime;
     }
