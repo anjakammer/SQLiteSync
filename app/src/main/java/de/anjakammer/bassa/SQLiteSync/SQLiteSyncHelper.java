@@ -36,10 +36,16 @@ public class SQLiteSyncHelper {
         return delta;
     }
 
-    private JSONObject prepareDelta(){
+    private JSONObject prepareDeltaObject(String lastSyncTime, String dbId){
         JSONObject delta = new JSONObject();
-
-
+        try {
+            delta.put("DB-ID", dbId);
+            delta.put("isMaster",String.valueOf(isMaster));
+            delta.put("lastSyncTime",lastSyncTime);
+            delta.put("tables",new JSONArray());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return delta;
     }
 
@@ -50,9 +56,8 @@ public class SQLiteSyncHelper {
                 );
         cursor.moveToFirst();
         int valueIndex = cursor.getColumnIndex("value");
-        cursor.close();
-
         String lastUpdateTime = cursor.getString(valueIndex);
+        cursor.close();
         return lastUpdateTime;
     }
 

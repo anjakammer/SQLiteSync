@@ -33,8 +33,8 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String ANSWERS_CREATE =
             "CREATE TABLE " + TABLE_ANSWERS +
                     "(" + COLUMN_A_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_A_QUESTION_ID + " INTEGER FOREIGN KEY(" + COLUMN_ID + ") REFERENCES , " +
-                    TABLE_QUESTIONNAIRE + "(id) " + ")," +
+                    "FOREIGN KEY(" + COLUMN_A_QUESTION_ID + ") REFERENCES " +
+                    TABLE_QUESTIONNAIRE + "("+ COLUMN_A_ID +") " + ")," +
                     COLUMN_A_DESCRIPTION + " TEXT NOT NULL, " +
                     COLUMN_A_PARTICIPANT + " TEXT NOT NULL );";
 
