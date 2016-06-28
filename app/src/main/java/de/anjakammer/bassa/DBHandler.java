@@ -12,7 +12,7 @@ public class DBHandler extends SQLiteOpenHelper{
     private static final String LOG_TAG = DBHandler.class.getSimpleName();
     public static final String DB_ID = "QuestionnaireGroup1";
     public static final String DB_NAME = "Questionnaire.db";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 4;
     public static final boolean IS_MASTER = true;
 
     public static final String TABLE_QUESTIONNAIRE = "Questionnaire";
@@ -42,8 +42,8 @@ public class DBHandler extends SQLiteOpenHelper{
                     COLUMN_A_PARTICIPANT + " TEXT NOT NULL );";
 
     public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
-
     public static final String ANSWERS_DROP = "DROP TABLE IF EXISTS " + TABLE_ANSWERS;
+    
     private SQLiteSyncHelper SyncDBHelper;
 
     public DBHandler(Context context) {

@@ -44,15 +44,15 @@ public class QuestionDataSource {
         try{
             createAnswer("not answered yet", "Peer1", question_id);
             createAnswer("not answered yet", "Peer2", question_id);
-        }catch (Exception ex){
-            ex.printStackTrace();
-            Log.e(LOG_TAG, "createAnswer failed: " + ex.getMessage());
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.e(LOG_TAG, "createAnswer failed: " + e.getMessage());
         }
     }
 
     public void open() {
         database = dbHandler.getWritableDatabase();
-        Log.d(LOG_TAG, "Path to database-.: " + database.getPath());
+        Log.d(LOG_TAG, "Path to database: " + database.getPath());
     }
 
     public void close() {
@@ -151,7 +151,7 @@ public class QuestionDataSource {
 
         Question question = new Question(description, title, id, isDeleted);
         //todo test, please remove this
-//        insertFakeAnswers(id);
+        insertFakeAnswers(id);
         // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
         Log.d(LOG_TAG, "Mit Antwort " + id + " Inhalt: " + question.toString());
