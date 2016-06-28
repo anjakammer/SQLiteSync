@@ -9,6 +9,9 @@ import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.anjakammer.bassa.model.Answer;
+import de.anjakammer.bassa.model.Question;
+
 
 public class QuestionDataSource {
 
@@ -33,19 +36,47 @@ public class QuestionDataSource {
 
 
     public QuestionDataSource(Context context) {
-        Log.d(LOG_TAG, "Unsere DataSource erzeugt jetzt den dbHandler.");
         dbHandler = new DBHandler(context);
     }
 
+    // TODO remove this testing method
+    private void insertFakeAnswers(long question_id){
+        try{
+            createAnswer("not answered yet", "Peer1", question_id);
+            createAnswer("not answered yet", "Peer2", question_id);
+        }catch (Exception e){
+            e.printStackTrace();
+            Log.e(LOG_TAG, "createAnswer failed: " + e.getMessage());
+        }
+    }
+
     public void open() {
-        Log.d(LOG_TAG, "Eine Referenz auf die Datenbank wird jetzt angefragt.");
         database = dbHandler.getWritableDatabase();
-        Log.d(LOG_TAG, "Datenbank-Referenz erhalten. Pfad zur Datenbank: " + database.getPath());
+        Log.d(LOG_TAG, "Path to database: " + database.getPath());
     }
 
     public void close() {
         dbHandler.close();
-        Log.d(LOG_TAG, "Datenbank mit Hilfe des DbHelpers geschlossen.");
+        Log.d(LOG_TAG, "closed database.");
+    }
+
+    public Answer createAnswer(String description, String participant, long question_id) {
+        ContentValues values = new ContentValues();
+        values.put(DBHandler.COLUMN_A_DESCRIPTION, description);
+        values.put(DBHandler.COLUMN_A_PARTICIPANT, participant);
+        values.put(DBHandler.COLUMN_A_QUESTION_ID, question_id);
+
+        long insertId = database.insert(DBHandler.TABLE_ANSWERS, null, values);
+
+        Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
+                answerColumns, DBHandler.COLUMN_ID + "=" + insertId,
+                null, null, null, null);
+
+        cursor.moveToFirst();
+        Answer answer = cursorToAnswer(cursor);
+        cursor.close();
+        Log.d(LOG_TAG, "Antwort  saved! " + answer.toString());
+        return answer;
     }
 
     public Question createQuestion(String description, String title) {
@@ -60,10 +91,10 @@ public class QuestionDataSource {
                 null, null, null, null);
 
         cursor.moveToFirst();
-        Question Question = cursorToQuestion(cursor);
+        Question question = cursorToQuestion(cursor);
         cursor.close();
-        Log.d(LOG_TAG, "Eintrag  gespeichert! " + Question.toString());
-        return Question;
+        Log.d(LOG_TAG, "Question  saved! " + question.toString());
+        return question;
     }
 
     public void deleteQuestion(Question Question) {
@@ -114,13 +145,18 @@ public class QuestionDataSource {
         String description = cursor.getString(idQuestion);
         String title = cursor.getString(idTitle);
         long id = cursor.getLong(idIndex);
-        int intValueIsDeleted = cursor.getInt(idIsDeleted);
 
+        int intValueIsDeleted = cursor.getInt(idIsDeleted);
         boolean isDeleted = (intValueIsDeleted != 0);
 
-        return new Question(description, title, id, isDeleted);
+        Question question = new Question(description, title, id, isDeleted);
+        //todo test, please remove this
+        insertFakeAnswers(id);
+        // todo test, please remove this
+        question.setAnswers(getRelatedAnswers(id));
+        Log.d(LOG_TAG, "Mit Antwort " + id + " Inhalt: " + question.toString());
+        return question;
     }
-
     private Answer cursorToAnswer(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_A_ID);
         int idDescription = cursor.getColumnIndex(DBHandler.COLUMN_A_DESCRIPTION);
@@ -149,7 +185,6 @@ public class QuestionDataSource {
 
         while (!cursor.isAfterLast()) {
             question = cursorToQuestion(cursor);
-            question.setAnswers(getRelatedAnswers(question.getId()));
             QuestionList.add(question);
             cursor.moveToNext();
         }
@@ -167,7 +202,6 @@ public class QuestionDataSource {
 
         Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
                 answerColumns, whereQuestionID, questionID, null, null, null);
-
         cursor.moveToFirst();
         Answer answer;
 
@@ -178,7 +212,6 @@ public class QuestionDataSource {
         }
 
         cursor.close();
-
         return AnswerList;
     }
 

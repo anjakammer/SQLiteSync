@@ -7,7 +7,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
 import java.util.ArrayList;
 import java.util.List;
 import android.view.inputmethod.InputMethodManager;
@@ -26,6 +25,8 @@ import android.graphics.Paint;
 import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+
+import de.anjakammer.bassa.model.Question;
 
 public class MainActivity extends AppCompatActivity {
 

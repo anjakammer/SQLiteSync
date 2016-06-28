@@ -1,4 +1,4 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.model;
 
 public class Answer {
 
@@ -22,6 +22,7 @@ public class Answer {
     public void setDescription(String description) {
         this.description = description;
     }
+
     public String getParticipant() {
         return participant;
     }
@@ -46,4 +47,8 @@ public class Answer {
         this.question_id = question_id;
     }
 
+    @Override
+    public String toString() {
+        return participant + ": " + description;
+    }
 }

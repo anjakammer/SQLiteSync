@@ -1,4 +1,4 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.model;
 
 import java.util.List;
 
@@ -25,7 +25,6 @@ public class Question {
         this.description = description;
     }
 
-
     public String getTitle() {
         return title;
     }
@@ -33,7 +32,6 @@ public class Question {
     public void setTitle(String title) {
         this.title = title;
     }
-
 
     public long getId() {
         return id;
@@ -61,6 +59,10 @@ public class Question {
 
     @Override
     public String toString() {
-        return title + "\n" + description;
+        String str = title + ": " + description + "\n Answers: \n";
+        for (Answer answer: getAnswers()) {
+            str += answer.toString()+ "\n";
+        }
+        return str;
     }
 }
