@@ -3,7 +3,7 @@ package de.anjakammer.bassa.SQLiteSync;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.provider.Settings;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
