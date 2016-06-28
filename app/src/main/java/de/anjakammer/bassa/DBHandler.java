@@ -33,8 +33,7 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String ANSWERS_CREATE =
             "CREATE TABLE " + TABLE_ANSWERS +
                     "(" + COLUMN_A_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "FOREIGN KEY(" + COLUMN_A_QUESTION_ID + ") REFERENCES " +
-                    TABLE_QUESTIONNAIRE + "("+ COLUMN_A_ID +") " + ")," +
+                    COLUMN_A_QUESTION_ID + " INTEGER, " +
                     COLUMN_A_DESCRIPTION + " TEXT NOT NULL, " +
                     COLUMN_A_PARTICIPANT + " TEXT NOT NULL );";
 
@@ -53,17 +52,13 @@ public class DBHandler extends SQLiteOpenHelper{
         try {
             Log.d(LOG_TAG, "Die Tabelle wird mit SQL-Befehl: " + QUESTIONS_CREATE + " angelegt.");
             db.execSQL(QUESTIONS_CREATE);
-        }
-        catch (Exception ex) {
-            Log.e(LOG_TAG, "Fehler beim Anlegen der Tabelle: " + ex.getMessage());
-        }
-        try {
             Log.d(LOG_TAG, "Die Tabelle wird mit SQL-Befehl: " + ANSWERS_CREATE + " angelegt.");
             db.execSQL(ANSWERS_CREATE);
         }
         catch (Exception ex) {
             Log.e(LOG_TAG, "Fehler beim Anlegen der Tabelle: " + ex.getMessage());
         }
+
     }
 
     // Die onUpgrade-Methode wird aufgerufen, sobald die neue Versionsnummer höher

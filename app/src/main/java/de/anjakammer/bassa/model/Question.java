@@ -25,7 +25,6 @@ public class Question {
         this.description = description;
     }
 
-
     public String getTitle() {
         return title;
     }
@@ -33,7 +32,6 @@ public class Question {
     public void setTitle(String title) {
         this.title = title;
     }
-
 
     public long getId() {
         return id;

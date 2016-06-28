@@ -36,25 +36,27 @@ public class QuestionDataSource {
 
 
     public QuestionDataSource(Context context) {
-        Log.d(LOG_TAG, "Unsere DataSource erzeugt jetzt den dbHandler.");
         dbHandler = new DBHandler(context);
     }
 
     // TODO remove this testing method
     private void insertFakeAnswers(long question_id){
-        createAnswer("first Answer", "Peer1", question_id);
-        createAnswer("second Answer", "Peer2", question_id);
+        try{
+            createAnswer("first Answer", "Peer1", question_id);
+            createAnswer("second Answer", "Peer2", question_id);
+        }catch (Exception e){
+            Log.e(LOG_TAG, "createAnswer failed.");
+        }
     }
 
     public void open() {
-        Log.d(LOG_TAG, "Eine Referenz auf die Datenbank wird jetzt angefragt.");
         database = dbHandler.getWritableDatabase();
-        Log.d(LOG_TAG, "Datenbank-Referenz erhalten. Pfad zur Datenbank: " + database.getPath());
+        Log.d(LOG_TAG, "Path to database-.: " + database.getPath());
     }
 
     public void close() {
         dbHandler.close();
-        Log.d(LOG_TAG, "Datenbank mit Hilfe des DbHelpers geschlossen.");
+        Log.d(LOG_TAG, "closed database.");
     }
 
     public Answer createAnswer(String description, String participant, long question_id) {
@@ -66,13 +68,13 @@ public class QuestionDataSource {
         long insertId = database.insert(DBHandler.TABLE_ANSWERS, null, values);
 
         Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
-                questionColumns, DBHandler.COLUMN_ID + "=" + insertId,
+                answerColumns, DBHandler.COLUMN_ID + "=" + insertId,
                 null, null, null, null);
 
         cursor.moveToFirst();
         Answer answer = cursorToAnswer(cursor);
         cursor.close();
-        Log.d(LOG_TAG, "Eintrag  gespeichert! " + answer.toString());
+        Log.d(LOG_TAG, "Antwort  saved! " + answer.toString());
         return answer;
     }
 
@@ -90,7 +92,7 @@ public class QuestionDataSource {
         cursor.moveToFirst();
         Question question = cursorToQuestion(cursor);
         cursor.close();
-        Log.d(LOG_TAG, "Eintrag  gespeichert! " + question.toString());
+        Log.d(LOG_TAG, "Question  saved! " + question.toString());
         return question;
     }
 
@@ -148,13 +150,12 @@ public class QuestionDataSource {
 
         Question question = new Question(description, title, id, isDeleted);
         //todo test, please remove this
-        insertFakeAnswers(id);
+//        insertFakeAnswers(id);
         // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
         Log.d(LOG_TAG, "Mit Antwort " + id + " Inhalt: " + question.toString());
         return question;
     }
-
     private Answer cursorToAnswer(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_A_ID);
         int idDescription = cursor.getColumnIndex(DBHandler.COLUMN_A_DESCRIPTION);
@@ -200,7 +201,6 @@ public class QuestionDataSource {
 
         Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
                 answerColumns, whereQuestionID, questionID, null, null, null);
-
         cursor.moveToFirst();
         Answer answer;
 
@@ -211,7 +211,6 @@ public class QuestionDataSource {
         }
 
         cursor.close();
-
         return AnswerList;
     }
 
