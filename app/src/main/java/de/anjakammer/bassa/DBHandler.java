@@ -5,11 +5,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import de.anjakammer.bassa.SQLiteSync.SQLiteSyncHelper;
+
 public class DBHandler extends SQLiteOpenHelper{
 
     private static final String LOG_TAG = DBHandler.class.getSimpleName();
+    public static final String DB_ID = "QuestionnaireGroup1";
     public static final String DB_NAME = "Questionnaire.db";
     public static final int DB_VERSION = 1;
+    public static final boolean IS_MASTER = true;
 
     public static final String TABLE_QUESTIONNAIRE = "Questionnaire";
     public static final String COLUMN_ID = "_id";
@@ -59,6 +63,9 @@ public class DBHandler extends SQLiteOpenHelper{
             Log.e(LOG_TAG, "Fehler beim Anlegen der Tabelle: " + ex.getMessage());
         }
 
+        SQLiteSyncHelper SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
+        //TODO
+
     }
 
     // Die onUpgrade-Methode wird aufgerufen, sobald die neue Versionsnummer höher
@@ -67,6 +74,8 @@ public class DBHandler extends SQLiteOpenHelper{
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(QUESTIONS_DROP);
         db.execSQL(ANSWERS_DROP);
+        //TODO drop sync DB
         onCreate(db);
+        //TODO create sync db
     }
 }
