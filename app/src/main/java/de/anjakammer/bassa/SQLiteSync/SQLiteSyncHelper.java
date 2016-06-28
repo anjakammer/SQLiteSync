@@ -124,7 +124,7 @@ public class SQLiteSyncHelper {
 
     private String getDbId(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {COLUMN_VALUE},"key = '?'",new String[] {KEY_DB_ID}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = '?'",new String[] {KEY_DB_ID}
                 ,null, null, null
         );
         cursor.moveToFirst();
@@ -185,7 +185,7 @@ public class SQLiteSyncHelper {
 
     public boolean isDbMaster(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {COLUMN_VALUE},"key = '?'",new String[] {KEY_IS_MASTER}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = '?'",new String[] {KEY_IS_MASTER}
                 ,null, null, null
         );
         cursor.moveToFirst();
