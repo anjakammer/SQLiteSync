@@ -124,11 +124,11 @@ public class SQLiteSyncHelper {
 
     private String getDbId(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {KEY_DB_ID}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},"key = '?'",new String[] {KEY_DB_ID}
                 ,null, null, null
         );
         cursor.moveToFirst();
-        int valueIndex = cursor.getColumnIndex("value");
+        int valueIndex = cursor.getColumnIndex(COLUMN_VALUE);
         String DbId = cursor.getString(valueIndex);
         cursor.close();
         return DbId;
@@ -185,11 +185,11 @@ public class SQLiteSyncHelper {
 
     public boolean isDbMaster(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {"value"},"key = '?'",new String[] {KEY_IS_MASTER}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},"key = '?'",new String[] {KEY_IS_MASTER}
                 ,null, null, null
         );
         cursor.moveToFirst();
-        int valueIndex = cursor.getColumnIndex("value");
+        int valueIndex = cursor.getColumnIndex(COLUMN_VALUE);
         boolean isMaster = cursor.getInt(valueIndex)== 1;
         cursor.close();
         return isMaster;
