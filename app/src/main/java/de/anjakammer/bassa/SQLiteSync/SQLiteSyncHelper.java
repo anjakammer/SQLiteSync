@@ -59,12 +59,6 @@ public class SQLiteSyncHelper {
         }
         return false;
     }
-    public void createSyncableDB(String DbId, SQLiteDatabase db, String[]tables){
-        // TODO execute create settings table
-        // put isMaster
-        // put DBID
-        // put tables
-    }
 
     public void tearDownSyncableDB(){
         // TODO execute drop settings table
@@ -86,6 +80,7 @@ public class SQLiteSyncHelper {
             cursor.close();
         }
         return delta;
+
     }
 
     private JSONObject prepareDeltaObject(String lastSyncTime, String dbId){
