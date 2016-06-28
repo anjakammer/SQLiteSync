@@ -32,11 +32,10 @@ public class SQLiteSyncHelper {
     private static final String KEY_IS_MASTER = "isMaster";
     private static final String KEY_DB_ID = "DB_ID";
 
-
     public SQLiteSyncHelper(SQLiteDatabase db, boolean isMaster, String dbID){
         this.db = db;
-        if(! isTableExisting(TABLE_SETTINGS)){
-            prepareSyncableDB(isMaster);
+        if(!isTableExisting(TABLE_SETTINGS)){
+            prepareSyncableDB(isMaster, dbID);
             return;
         }
 
@@ -44,39 +43,12 @@ public class SQLiteSyncHelper {
             setMaster(isMaster);
         }
 
-        if(getDbId() != dbID) {
+        if(!getDbId().equals(dbID)) {
             setDbID(dbID);
         }
     }
 
-    public void setMaster(boolean isMaster) {
-        this.isMaster = isMaster;
-        int intValueIsMaster = (this.isMaster) ? 1 : 0;
-
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_VALUE, intValueIsMaster);
-
-        this.db.update(TABLE_SETTINGS,
-                values,
-                COLUMN_KEY + "=" + KEY_IS_MASTER,
-                null);
-    }
-
-    public void setDbID(String dbID) {
-        this.dbID = dbID;
-
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_VALUE, this.dbID);
-
-        this.db.update(TABLE_SETTINGS,
-                values,
-                COLUMN_KEY + "=" + KEY_DB_ID,
-                null);
-    }
-
-
-    private void prepareSyncableDB(boolean isMaster){
-        // TODO fill settings table
+    private void prepareSyncableDB(boolean isMaster, String dbID){
         try {
             Log.d(LOG_TAG, "Die Tabelle wird mit SQL-Befehl: " + SETTINGS_CREATE + " angelegt.");
             this.db.execSQL(SETTINGS_CREATE);
@@ -85,14 +57,20 @@ public class SQLiteSyncHelper {
             Log.e(LOG_TAG, "Fehler beim Anlegen der Tabelle: " + ex.getMessage());
         }
 
+        // Insert isMaster Key-Value pair
+        int intValueIsMaster = (isMaster) ? 1 : 0;
         ContentValues isMasterKeyValue = new ContentValues();
         isMasterKeyValue.put(COLUMN_KEY, KEY_IS_MASTER);
-        isMasterKeyValue.put(COLUMN_VALUE, isMaster);
-
+        isMasterKeyValue.put(COLUMN_VALUE, intValueIsMaster);
         this.db.insert(TABLE_SETTINGS, null, isMasterKeyValue);
 
-
+        // Insert dbID Key-Value pair
+        ContentValues dbIDKeyValue = new ContentValues();
+        isMasterKeyValue.put(COLUMN_KEY, KEY_DB_ID);
+        isMasterKeyValue.put(COLUMN_VALUE, dbID);
+        this.db.insert(TABLE_SETTINGS, null, dbIDKeyValue);
     }
+
     public void tearDownSyncableDB(){
         // TODO execute drop settings table
     }
@@ -190,6 +168,31 @@ public class SQLiteSyncHelper {
         boolean isMaster = cursor.getInt(valueIndex)== 1;
         cursor.close();
         return isMaster;
+    }
+
+    public void setMaster(boolean isMaster) {
+        this.isMaster = isMaster;
+        int intValueIsMaster = (this.isMaster) ? 1 : 0;
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VALUE, intValueIsMaster);
+
+        this.db.update(TABLE_SETTINGS,
+                values,
+                COLUMN_KEY + "=" + KEY_IS_MASTER,
+                null);
+    }
+
+    public void setDbID(String dbID) {
+        this.dbID = dbID;
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VALUE, this.dbID);
+
+        this.db.update(TABLE_SETTINGS,
+                values,
+                COLUMN_KEY + "=" + KEY_DB_ID,
+                null);
     }
 
 }

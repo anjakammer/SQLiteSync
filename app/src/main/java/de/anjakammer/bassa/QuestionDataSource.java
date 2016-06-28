@@ -42,8 +42,8 @@ public class QuestionDataSource {
     // TODO remove this testing method
     private void insertFakeAnswers(long question_id){
         try{
-            createAnswer("first Answer", "Peer1", question_id);
-            createAnswer("second Answer", "Peer2", question_id);
+            createAnswer("not answered yet", "Peer1", question_id);
+            createAnswer("not answered yet", "Peer2", question_id);
         }catch (Exception e){
             Log.e(LOG_TAG, "createAnswer failed.");
         }
