@@ -8,6 +8,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,16 +27,16 @@ public class SQLiteSyncHelper {
     private static final String COLUMN_VALUE = "value";
     private static final String SETTINGS_CREATE =
             "CREATE TABLE " + TABLE_SETTINGS +
-                    "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "( "+COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_KEY + " TEXT NOT NULL, " +
-                    COLUMN_VALUE + " TEXT NOT NULL ;";
+                    COLUMN_VALUE + " TEXT NOT NULL );";
     public static final String SETTINGS_DROP = "DROP TABLE IF EXISTS " + TABLE_SETTINGS;
     private static final String KEY_IS_MASTER = "isMaster";
     private static final String KEY_DB_ID = "DB_ID";
     private static final String KEY_TABLES = "tables";
     private static final String KEY_LASTSYNCTIME = "lastSyncTime";
-    private static final String COLUMNE_IS_DELETED = "isDeleted";
-    private static final String COLUMNE_TIMESTAMP = "timestamp";
+    private static final String COLUMN_IS_DELETED = "isDeleted";
+    private static final String COLUMN_TIMESTAMP = "timestamp";
 
     public SQLiteSyncHelper(SQLiteDatabase db, boolean isMaster, String dbID){
         this.db = db;
@@ -79,6 +81,31 @@ public class SQLiteSyncHelper {
         db.execSQL(SETTINGS_DROP);
     }
 
+    public void delete(String table, long _id){
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TIMESTAMP, getTimestamp());
+        values.put(COLUMN_IS_DELETED, 1);
+
+        db.update(table,
+                values,
+                COLUMN_ID + "=" + _id,
+                null);
+
+        Log.d(LOG_TAG, "Object marked as deleted in table: "+ table+ ", _id: " + _id );
+    }
+
+    public void update(String table, long _id, ContentValues values){
+        values.put(COLUMN_TIMESTAMP, getTimestamp());
+        db.update(table,
+                values,
+                COLUMN_ID + "=" + _id,
+                null);
+
+        Log.d(LOG_TAG, "Object updated in table: "+ table +", _id: " + _id );
+    }
+
+    //TODO INSERT
+
     public JSONObject getDelta(JSONObject peer) {
 
         // TODO test-data from peer delta
@@ -97,7 +124,7 @@ public class SQLiteSyncHelper {
         List<String> tables = getSyncableTableNames();
         for (String table: tables) {
             Cursor cursor = this.db.query(
-                    table, new String[] {COLUMNE_TIMESTAMP},COLUMNE_TIMESTAMP +" >= '?'",
+                    table, new String[] {COLUMN_TIMESTAMP}, COLUMN_TIMESTAMP +" >= '?'",
                     new String[] {lastSyncTime}
                     ,null, null, null
             );
@@ -154,19 +181,19 @@ public class SQLiteSyncHelper {
     }
 
     private void addIsDeletedColumn(String table){
-        Cursor cursor = this.db.rawQuery("SELECT "+ COLUMNE_IS_DELETED +" FROM " + table , null);
+        Cursor cursor = this.db.rawQuery("SELECT * FROM " + table , null);
         cursor.moveToFirst();
-        if(cursor.getColumnCount() < 1){
-            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMNE_IS_DELETED + " INTEGER");
+        if(cursor.getColumnIndex(COLUMN_IS_DELETED) < 1){
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER");
         }
         cursor.close();
     }
 
     private void addTimestampColumn(String table){
-        Cursor cursor = this.db.rawQuery("SELECT "+ COLUMNE_TIMESTAMP +" FROM " + table , null);
+        Cursor cursor = this.db.rawQuery("SELECT * FROM " + table , null);
         cursor.moveToFirst();
-        if(cursor.getColumnCount() < 1){
-            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMNE_TIMESTAMP + " TEXT");
+        if(cursor.getColumnIndex(COLUMN_TIMESTAMP) < 1){
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_TIMESTAMP + " TEXT");
         }
         cursor.close();
     }
@@ -220,4 +247,7 @@ public class SQLiteSyncHelper {
                 null);
     }
 
+    private String getTimestamp(){
+        return new Timestamp(System.currentTimeMillis()).toString();
+    }
 }

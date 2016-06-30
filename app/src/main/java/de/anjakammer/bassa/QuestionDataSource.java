@@ -23,8 +23,7 @@ public class QuestionDataSource {
     private String[] questionColumns = {
             DBHandler.COLUMN_ID,
             DBHandler.COLUMN_DESCRIPTION,
-            DBHandler.COLUMN_TITLE,
-            DBHandler.COLUMN_ISDELETED
+            DBHandler.COLUMN_TITLE
     };
 
     private String[] answerColumns = {
@@ -98,21 +97,11 @@ public class QuestionDataSource {
     }
 
     public void deleteQuestion(Question Question) {
-        long id = Question.getId();
-        int intValueIsDeleted = 1;
-
-        ContentValues values = new ContentValues();
-        values.put(DBHandler.COLUMN_ISDELETED, intValueIsDeleted);
-
-        database.update(DBHandler.TABLE_QUESTIONNAIRE,
-                values,
-                DBHandler.COLUMN_ID + "=" + id,
-                null);
-
-        Log.d(LOG_TAG, "Eintrag als gelöscht gespeichert! ID: " + id + " Inhalt: " + Question.toString());
+        long _id = Question.getId();
+        DBHandler.SyncDBHelper.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
     }
 
-    public Question updateQuestion(long id, String newQuestion, String newTitle, boolean newIsDeleted) {
+    public Question updateQuestion(long _id, String newQuestion, String newTitle, boolean newIsDeleted) {
         int intValueIsDeleted = (newIsDeleted) ? 1 : 0;
 
         ContentValues values = new ContentValues();
@@ -120,13 +109,10 @@ public class QuestionDataSource {
         values.put(DBHandler.COLUMN_TITLE, newTitle);
         values.put(DBHandler.COLUMN_ISDELETED, intValueIsDeleted);
 
-        database.update(DBHandler.TABLE_QUESTIONNAIRE,
-                values,
-                DBHandler.COLUMN_ID + "=" + id,
-                null);
+        DBHandler.SyncDBHelper.update(DBHandler.TABLE_QUESTIONNAIRE, _id, values);
 
         Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                questionColumns, DBHandler.COLUMN_ID + "=" + id,
+                questionColumns, DBHandler.COLUMN_ID + "=" + _id,
                 null, null, null, null);
 
         cursor.moveToFirst();

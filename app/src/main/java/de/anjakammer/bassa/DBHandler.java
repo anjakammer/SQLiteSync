@@ -44,7 +44,7 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
     public static final String ANSWERS_DROP = "DROP TABLE IF EXISTS " + TABLE_ANSWERS;
 
-    private SQLiteSyncHelper SyncDBHelper;
+    public static SQLiteSyncHelper SyncDBHelper;
 
     public DBHandler(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
