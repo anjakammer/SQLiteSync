@@ -1,6 +1,8 @@
 package de.anjakammer.bassa;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -27,6 +29,19 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String COLUMN_A_DESCRIPTION = "answer";
     public static final String COLUMN_A_PARTICIPANT = "participant";
 
+    public static final String[] QUESTION_COLUMNS = {
+            COLUMN_ID,
+            COLUMN_DESCRIPTION,
+            COLUMN_TITLE
+    };
+
+    public static final String[] ANSWER_COLUMNS = {
+            COLUMN_A_ID,
+            COLUMN_A_DESCRIPTION,
+            COLUMN_A_PARTICIPANT,
+            COLUMN_A_QUESTION_ID
+    };
+
     public static final String QUESTIONS_CREATE =
             "CREATE TABLE " + TABLE_QUESTIONNAIRE +
                     "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -44,7 +59,7 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
     public static final String ANSWERS_DROP = "DROP TABLE IF EXISTS " + TABLE_ANSWERS;
 
-    public static SQLiteSyncHelper SyncDBHelper;
+    public SQLiteSyncHelper SyncDBHelper;
 
     public DBHandler(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -63,7 +78,7 @@ public class DBHandler extends SQLiteOpenHelper{
             SyncDBHelper.makeTableSyncable(TABLE_ANSWERS);
         }
         catch (Exception e) {
-            Log.e(LOG_TAG, "creating failed for table/s: "+ e.getMessage());
+            Log.e(LOG_TAG, "creating failed for table: "+ e.getMessage());
         }
     }
 
@@ -74,4 +89,28 @@ public class DBHandler extends SQLiteOpenHelper{
         SyncDBHelper.tearDownSyncableDB();
         onCreate(db);
     }
+
+    public void delete(String table, long _id){
+        SyncDBHelper.delete(table, _id);
+    }
+
+    public void update(String table, long _id, ContentValues values){
+        SyncDBHelper.update(table, _id, values);
+    }
+
+    public long insert(String table, ContentValues values){
+        return SyncDBHelper.insert(table, values);
+    }
+
+    public Cursor select(boolean distinct, String table, String[] columns,
+                         String selection, String[] selectionArgs, String groupBy,
+                         String having, String orderBy, String limit){
+        return SyncDBHelper.select(distinct, table, columns, selection, selectionArgs,
+                groupBy, having, orderBy, limit);
+    }
+
+
+    //TODO INSERT
+
+    // TODO SELECT
 }

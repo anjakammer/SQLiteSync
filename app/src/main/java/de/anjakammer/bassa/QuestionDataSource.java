@@ -20,18 +20,18 @@ public class QuestionDataSource {
     private SQLiteDatabase database;
     private DBHandler dbHandler;
 
-    private String[] questionColumns = {
-            DBHandler.COLUMN_ID,
-            DBHandler.COLUMN_DESCRIPTION,
-            DBHandler.COLUMN_TITLE
-    };
-
-    private String[] answerColumns = {
-            DBHandler.COLUMN_A_ID,
-            DBHandler.COLUMN_A_DESCRIPTION,
-            DBHandler.COLUMN_A_PARTICIPANT,
-            DBHandler.COLUMN_A_QUESTION_ID
-    };
+//    private String[] questionColumns = {
+//            DBHandler.COLUMN_ID,
+//            DBHandler.COLUMN_DESCRIPTION,
+//            DBHandler.COLUMN_TITLE
+//    };
+//
+//    private String[] answerColumns = {
+//            DBHandler.COLUMN_A_ID,
+//            DBHandler.COLUMN_A_DESCRIPTION,
+//            DBHandler.COLUMN_A_PARTICIPANT,
+//            DBHandler.COLUMN_A_QUESTION_ID
+//    };
 
 
     public QuestionDataSource(Context context) {
@@ -65,16 +65,17 @@ public class QuestionDataSource {
         values.put(DBHandler.COLUMN_A_PARTICIPANT, participant);
         values.put(DBHandler.COLUMN_A_QUESTION_ID, question_id);
 
-        long insertId = database.insert(DBHandler.TABLE_ANSWERS, null, values);
+        long insertId = dbHandler.insert(DBHandler.TABLE_ANSWERS, values);
 
-        Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
-                answerColumns, DBHandler.COLUMN_ID + "=" + insertId,
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
+                DBHandler.ANSWER_COLUMNS, DBHandler.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(insertId)},
                 null, null, null, null);
 
         cursor.moveToFirst();
         Answer answer = cursorToAnswer(cursor);
         cursor.close();
-        Log.d(LOG_TAG, "Antwort  saved! " + answer.toString());
+        Log.d(LOG_TAG, "Answer saved! " + answer.toString());
         return answer;
     }
 
@@ -83,22 +84,23 @@ public class QuestionDataSource {
         values.put(DBHandler.COLUMN_DESCRIPTION, description);
         values.put(DBHandler.COLUMN_TITLE, title);
 
-        long insertId = database.insert(DBHandler.TABLE_QUESTIONNAIRE, null, values);
+        long insertId = dbHandler.insert(DBHandler.TABLE_QUESTIONNAIRE, values);
 
-        Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                questionColumns, DBHandler.COLUMN_ID + "=" + insertId,
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
+                DBHandler.QUESTION_COLUMNS, DBHandler.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(insertId)},
                 null, null, null, null);
 
         cursor.moveToFirst();
         Question question = cursorToQuestion(cursor);
         cursor.close();
-        Log.d(LOG_TAG, "Question  saved! " + question.toString());
+        Log.d(LOG_TAG, "Question saved! " + question.toString());
         return question;
     }
 
     public void deleteQuestion(Question Question) {
         long _id = Question.getId();
-        DBHandler.SyncDBHelper.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
+        dbHandler.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
     }
 
     public Question updateQuestion(long _id, String newQuestion, String newTitle, boolean newIsDeleted) {
@@ -109,10 +111,11 @@ public class QuestionDataSource {
         values.put(DBHandler.COLUMN_TITLE, newTitle);
         values.put(DBHandler.COLUMN_ISDELETED, intValueIsDeleted);
 
-        DBHandler.SyncDBHelper.update(DBHandler.TABLE_QUESTIONNAIRE, _id, values);
+        dbHandler.update(DBHandler.TABLE_QUESTIONNAIRE, _id, values);
 
-        Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                questionColumns, DBHandler.COLUMN_ID + "=" + _id,
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
+                DBHandler.QUESTION_COLUMNS, DBHandler.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(_id)},
                 null, null, null, null);
 
         cursor.moveToFirst();
@@ -160,11 +163,13 @@ public class QuestionDataSource {
     public List<Question> getAllQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
-        String whereIsDeleted = "isDeleted = ?";
+        String whereIsDeleted = "isDeleted = ?"; // TODO encapsulation needed !
         String[] isFalse = new String[] {"0"};
 
-        Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                questionColumns, whereIsDeleted, isFalse, null, null, null);
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
+                DBHandler.QUESTION_COLUMNS, whereIsDeleted,
+                isFalse,
+                null, null, null, null);
 
         cursor.moveToFirst();
         Question question;
@@ -186,8 +191,11 @@ public class QuestionDataSource {
         String whereQuestionID = "question_id = ?";
         String[] questionID = new String[] {String.valueOf(questionId)};
 
-        Cursor cursor = database.query(DBHandler.TABLE_ANSWERS,
-                answerColumns, whereQuestionID, questionID, null, null, null);
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
+                DBHandler.ANSWER_COLUMNS, whereQuestionID,
+                questionID,
+                null, null, null, null);
+
         cursor.moveToFirst();
         Answer answer;
 
@@ -204,11 +212,13 @@ public class QuestionDataSource {
     public List<Question> getAllDeletedQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
-        String whereIsDeleted = "isDeleted = ?";
+        String whereIsDeleted = "isDeleted = ?"; // TODO encapsulation needed !
         String[] isFalse = new String[] {"1"};
 
-        Cursor cursor = database.query(DBHandler.TABLE_QUESTIONNAIRE,
-                questionColumns, whereIsDeleted, isFalse, null, null, null);
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
+                DBHandler.QUESTION_COLUMNS, whereIsDeleted,
+                isFalse,
+                null, null, null, null);
 
         cursor.moveToFirst();
         Question question;

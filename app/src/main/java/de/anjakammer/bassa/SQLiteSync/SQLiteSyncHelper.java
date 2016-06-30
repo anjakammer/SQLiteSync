@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.anjakammer.bassa.DBHandler;
 
 
 public class SQLiteSyncHelper {
@@ -37,6 +38,7 @@ public class SQLiteSyncHelper {
     private static final String KEY_LASTSYNCTIME = "lastSyncTime";
     private static final String COLUMN_IS_DELETED = "isDeleted";
     private static final String COLUMN_TIMESTAMP = "timestamp";
+
 
     public SQLiteSyncHelper(SQLiteDatabase db, boolean isMaster, String dbID){
         this.db = db;
@@ -104,7 +106,21 @@ public class SQLiteSyncHelper {
         Log.d(LOG_TAG, "Object updated in table: "+ table +", _id: " + _id );
     }
 
-    //TODO INSERT
+    public long insert(String table, ContentValues values){
+        values.put(COLUMN_TIMESTAMP, getTimestamp());
+        long _id = db.insert(table, null, values);
+        Log.d(LOG_TAG, "Object updated in table: "+ table +", _id: " + _id );
+        return _id;
+    }
+
+    public Cursor select(boolean distinct, String table, String[] columns,
+                         String selection, String[] selectionArgs, String groupBy,
+                         String having, String orderBy, String limit){
+
+        // TODO which are NOT deleted
+        return db.query(distinct, table, columns, selection, selectionArgs,
+                groupBy, having, orderBy, limit);
+    }
 
     public JSONObject getDelta(JSONObject peer) {
 
