@@ -16,8 +16,6 @@ import de.anjakammer.bassa.model.Question;
 public class QuestionDataSource {
 
     private static final String LOG_TAG = QuestionDataSource.class.getSimpleName();
-
-    private SQLiteDatabase database;
     private DBHandler dbHandler;
 
 //    private String[] questionColumns = {
@@ -50,7 +48,7 @@ public class QuestionDataSource {
     }
 
     public void open() {
-        database = dbHandler.getWritableDatabase();
+        dbHandler.getWritableDatabase();
         Log.d(LOG_TAG, "Path to database: " + database.getPath());
     }
 
