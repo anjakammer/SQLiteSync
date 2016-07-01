@@ -68,6 +68,7 @@ public class DBHandler extends SQLiteOpenHelper{
     // gets triggert on getWritableDatabase()
     @Override
     public void onCreate(SQLiteDatabase db) {
+        this.db = db;
         SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
 
         try {
