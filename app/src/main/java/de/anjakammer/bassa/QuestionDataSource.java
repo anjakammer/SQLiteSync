@@ -53,11 +53,6 @@ public class QuestionDataSource {
         dbHandler.getWritableDatabase();
     }
 
-    public void close() {
-        dbHandler.close();
-        Log.d(LOG_TAG, "closed database.");
-    }
-
     public Answer createAnswer(String description, String participant, long question_id) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_A_DESCRIPTION, description);

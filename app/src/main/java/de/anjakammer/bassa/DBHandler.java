@@ -72,9 +72,6 @@ public class DBHandler extends SQLiteOpenHelper{
         if(this.SyncDBHelper == null){
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
-
-
-
     }
 
     @Override

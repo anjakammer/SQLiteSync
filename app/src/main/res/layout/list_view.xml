@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:focusableInTouchMode="true">
+
+    <EditText
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="@string/editText_hint_title"
+    android:id="@+id/editText_title"
+    android:layout_weight="1" />
+
+    <EditText
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top"
+    android:hint="@string/editText_hint_question"
+    android:id="@+id/editText_question"
+    android:layout_weight="4" />
+
+    <Button
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/button_add_question"
+    android:id="@+id/button_add_question" />
+    </LinearLayout>
+
+    <TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:text="@string/headline_questions"
+    android:id="@+id/headline_questions"
+    android:layout_marginTop="16dp" />
+
+    <ListView
+    android:layout_width="fill_parent"
+    android:layout_height="200dp"
+    android:id="@+id/listview_questions"
+    android:layout_gravity="center_horizontal"
+    android:smoothScrollbar="true" />
+
+    <TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:text="@string/headline_deleted_questions"
+    android:id="@+id/headline_deleted_questions"
+    android:layout_marginTop="16dp" />
+
+    <ListView
+    android:layout_width="fill_parent"
+    android:layout_height="100dp"
+    android:id="@+id/listview_deleted_questions"
+    android:layout_gravity="center_horizontal"
+    android:smoothScrollbar="true" />
+</LinearLayout>
