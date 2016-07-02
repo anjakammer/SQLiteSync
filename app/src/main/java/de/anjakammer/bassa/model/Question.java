@@ -58,10 +58,6 @@ public class Question {
 
     @Override
     public String toString() {
-        String str = title + ": " + description + "\n Answers: \n";
-        for (Answer answer: getAnswers()) {
-            str += answer.toString()+ "\n";
-        }
-        return str;
+       return title + ": " + description;
     }
 }

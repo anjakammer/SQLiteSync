@@ -1,7 +1,9 @@
 package de.anjakammer.bassa;
 
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mDeletedQuestionsListView;
     private DetailFragment detailFragment;
     private ListFragment listFragment;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +56,6 @@ public class MainActivity extends AppCompatActivity {
         activateAddButton();
         initializeContextualActionBar();
         initializeAnswersListView();
-
-        // configure link
-        Bundle bundle = new Bundle();
-//        bundle.putString("link", link);
-//        detailFragment.setArguments(bundle);
     }
 
     @Override
@@ -151,37 +149,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void activateAddButton() {
-        Button buttonAddProduct = (Button) findViewById(R.id.button_add_question);
-        final EditText editTextTitle = (EditText) findViewById(R.id.editText_title);
-        final EditText editTextDescription = (EditText) findViewById(R.id.editText_question);
-        if(buttonAddProduct != null && editTextTitle != null && editTextDescription != null ) {
-            buttonAddProduct.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String title = editTextTitle.getText().toString();
-                    String description = editTextDescription.getText().toString();
-
-                    if (TextUtils.isEmpty(title)) {
-                        editTextTitle.setError(getString(R.string.editText_errorMessage));
-                        return;
-                    }
-                    if (TextUtils.isEmpty(description)) {
-                        editTextDescription.setError(getString(R.string.editText_errorMessage));
-                        return;
-                    }
-                    editTextTitle.setText("");
-                    editTextDescription.setText("");
-                    dataSource.createQuestion(description, title);
-
-                    InputMethodManager inputMethodManager;
-                    inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    if (getCurrentFocus() != null) {
-                        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                    }
-                    showAllListEntries();
-                }
-            });
-        }
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog AddQuestionDialog = createAddQuestionDialog();
+                AddQuestionDialog.show();
+            }
+        });
     }
 
     private void initializeContextualActionBar() {
@@ -312,6 +287,47 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         Question updatedQuestion = dataSource.updateQuestion(Question.getId(), description, title, Question.isDeleted());
+                        showAllListEntries();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_button_negative, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        return builder.create();
+    }
+
+    private AlertDialog createAddQuestionDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+
+        View dialogsView = inflater.inflate(R.layout.dialog_edit_question, null);
+
+        final EditText editTextTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
+
+        final EditText editTextDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
+
+
+        builder.setView(dialogsView)
+                .setTitle(R.string.dialog_title)
+                .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        String title = editTextTitle.getText().toString();
+                        String description = editTextDescription.getText().toString();
+
+                        if (TextUtils.isEmpty(title)) {
+                            editTextTitle.setError(getString(R.string.editText_errorMessage));
+                            return;
+                        }
+                        if (TextUtils.isEmpty(description)) {
+                            editTextDescription.setError(getString(R.string.editText_errorMessage));
+                            return;
+                        }
+                        dataSource.createQuestion(description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }
