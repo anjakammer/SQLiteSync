@@ -1,5 +1,6 @@
 package de.anjakammer.bassa;
 
+import android.database.SQLException;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -25,6 +26,7 @@ import android.graphics.Paint;
 import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import de.anjakammer.bassa.model.Question;
 
@@ -41,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d(LOG_TAG, "Das Datenquellen-Objekt wird angelegt.");
         dataSource = new QuestionDataSource(this);
 
         initializeQuestionsListView();
@@ -49,13 +50,17 @@ public class MainActivity extends AppCompatActivity {
 
         activateAddButton();
         initializeContextualActionBar();
+        // TODO ab hier steigt die APP aus
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        try{
         dataSource.open();
+              }catch (Exception e){
+            e.printStackTrace();
+        }
 
         showAllListEntries();
         showAllDeletedListEntries();
@@ -64,9 +69,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        Log.d(LOG_TAG, "Die Datenquelle wird geschlossen.");
-        dataSource.close();
+//        dataSource.close();
     }
 
     private void showAllListEntries () {
@@ -104,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         mQuestionsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Question Question = (Question) adapterView.getItemAtPosition(position);
+                Question question = (Question) adapterView.getItemAtPosition(position);
 
                 // TODO Vorschau anzeigen / Question Preview
             }

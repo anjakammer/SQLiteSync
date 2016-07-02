@@ -11,9 +11,9 @@ import org.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import de.anjakammer.bassa.DBHandler;
 
 
 public class SQLiteSyncHelper {
@@ -22,7 +22,7 @@ public class SQLiteSyncHelper {
     private String dbID;
     private SQLiteDatabase db;
     private static final String LOG_TAG = SQLiteSyncHelper.class.getSimpleName();
-    private static final String TABLE_SETTINGS = "SETTINGS";
+    private static final String TABLE_SETTINGS = "Settings";
     private static final String COLUMN_ID = "_id";
     private static final String COLUMN_KEY = "key";
     private static final String COLUMN_VALUE = "value";
@@ -40,15 +40,18 @@ public class SQLiteSyncHelper {
     private static final String COLUMN_TIMESTAMP = "timestamp";
 
 
-    public SQLiteSyncHelper(SQLiteDatabase db, boolean isMaster, String dbID){
+    public SQLiteSyncHelper(SQLiteDatabase db, boolean isThisDBMaster, String dbID){
         this.db = db;
+        this.dbID = dbID;
+        this.isMaster = isThisDBMaster;
+
         if(!isTableExisting(TABLE_SETTINGS)){
-            prepareSyncableDB(isMaster, dbID);
+            prepareSyncableDB(this.isMaster, dbID);
             return;
         }
 
-        if(isDbMaster() != isMaster) {
-            setMaster(isMaster);
+        if(isDbMaster() != this.isMaster) {
+            setMaster(this.isMaster);
         }
 
         if(!getDbId().equals(dbID)) {
@@ -56,17 +59,18 @@ public class SQLiteSyncHelper {
         }
     }
 
-    private void prepareSyncableDB(boolean isMaster, String dbID){
+    private void prepareSyncableDB(boolean isThisBDMaster, String dbID){
         try {
             this.db.execSQL(SETTINGS_CREATE);
         }
         catch (Exception e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "creating failed for table: "+ TABLE_SETTINGS + e.getMessage());
+            Log.e(LOG_TAG, "QUERY: "+ SETTINGS_CREATE );
         }
 
         // Insert isMaster Key-Value pair
-        int intValueIsMaster = (isMaster) ? 1 : 0;
+        int intValueIsMaster = (isThisBDMaster) ? 1 : 0;
         ContentValues isMasterKeyValue = new ContentValues();
         isMasterKeyValue.put(COLUMN_KEY, KEY_IS_MASTER);
         isMasterKeyValue.put(COLUMN_VALUE, intValueIsMaster);
@@ -74,8 +78,8 @@ public class SQLiteSyncHelper {
 
         // Insert dbID Key-Value pair
         ContentValues dbIDKeyValue = new ContentValues();
-        isMasterKeyValue.put(COLUMN_KEY, KEY_DB_ID);
-        isMasterKeyValue.put(COLUMN_VALUE, dbID);
+        dbIDKeyValue.put(COLUMN_KEY, KEY_DB_ID);
+        dbIDKeyValue.put(COLUMN_VALUE, dbID);
         this.db.insert(TABLE_SETTINGS, null, dbIDKeyValue);
     }
 
@@ -108,7 +112,14 @@ public class SQLiteSyncHelper {
 
     public long insert(String table, ContentValues values){
         values.put(COLUMN_TIMESTAMP, getTimestamp());
-        long _id = db.insert(table, null, values);
+
+        long _id = -1;
+        try {
+            _id = db.insert(table, null, values);
+        }catch (Exception e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "inserting failed: "+  e.getMessage());
+        }
         Log.d(LOG_TAG, "Object updated in table: "+ table +", _id: " + _id );
         return _id;
     }
@@ -118,6 +129,7 @@ public class SQLiteSyncHelper {
                          String having, String orderBy, String limit){
 
         // TODO which are NOT deleted
+//        if(selection)
         return db.query(distinct, table, columns, selection, selectionArgs,
                 groupBy, having, orderBy, limit);
     }
@@ -158,16 +170,16 @@ public class SQLiteSyncHelper {
             delta.put(KEY_IS_MASTER,String.valueOf(this.isMaster));
             delta.put(KEY_LASTSYNCTIME,lastSyncTime);
             delta.put(KEY_TABLES,new JSONArray());
-        } catch (JSONException ex) {
-            ex.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error while preparing delta: " + ex.getMessage());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error while preparing delta: " + e.getMessage());
         }
         return delta;
     }
 
     private String getDbId(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = '?'",new String[] {KEY_DB_ID}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = ?",new String[] {KEY_DB_ID}
                 ,null, null, null
         );
         cursor.moveToFirst();
@@ -192,54 +204,61 @@ public class SQLiteSyncHelper {
     }
 
     public void makeTableSyncable(String table){
-        addIsDeletedColumn(table);
+        try{
+            addIsDeletedColumn(table);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
         addTimestampColumn(table);
     }
 
     private void addIsDeletedColumn(String table){
-        Cursor cursor = this.db.rawQuery("SELECT * FROM " + table , null);
-        cursor.moveToFirst();
-        if(cursor.getColumnIndex(COLUMN_IS_DELETED) < 1){
+        List<String> columns = getAllColumns(table);
+        if(!columns.contains(COLUMN_IS_DELETED)){
             db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER");
         }
-        cursor.close();
     }
 
     private void addTimestampColumn(String table){
-        Cursor cursor = this.db.rawQuery("SELECT * FROM " + table , null);
-        cursor.moveToFirst();
-        if(cursor.getColumnIndex(COLUMN_TIMESTAMP) < 1){
+        //todo does not add this fucking column
+        List<String> columns = getAllColumns(table);
+        if(!columns.contains(COLUMN_TIMESTAMP)){
             db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_TIMESTAMP + " TEXT");
         }
-        cursor.close();
     }
 
-    public boolean isTableExisting(String table){
-        Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name = '" + table + "'", null);
-        if(cursor!=null) {
-            if(cursor.getCount()>0) {
-                cursor.close();
-                return true;
-            }
-            cursor.close();
+    boolean isTableExisting(String tableName)
+    {
+        if (tableName == null || this.db == null || !this.db.isOpen())
+        {
+            return false;
         }
-        return false;
+        Cursor cursor = this.db.rawQuery(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = ? AND name = ?",
+                new String[] {"table", tableName});
+        if (!cursor.moveToFirst())
+        {
+            return false;
+        }
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count > 0;
     }
 
     public boolean isDbMaster(){
         Cursor cursor = this.db.query(
-                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = '?'",new String[] {KEY_IS_MASTER}
+                TABLE_SETTINGS,new String[] {COLUMN_VALUE},COLUMN_KEY + " = ?",new String[] {KEY_IS_MASTER}
                 ,null, null, null
         );
         cursor.moveToFirst();
         int valueIndex = cursor.getColumnIndex(COLUMN_VALUE);
-        boolean isMaster = cursor.getInt(valueIndex)== 1;
+        boolean isThisBDMaster = cursor.getInt(valueIndex)== 1;
         cursor.close();
-        return isMaster;
+        return isThisBDMaster;
     }
 
-    public void setMaster(boolean isMaster) {
-        this.isMaster = isMaster;
+    public void setMaster(boolean isThisBDMaster) {
+        this.isMaster = isThisBDMaster;
         int intValueIsMaster = (this.isMaster) ? 1 : 0;
 
         ContentValues values = new ContentValues();
@@ -265,5 +284,13 @@ public class SQLiteSyncHelper {
 
     private String getTimestamp(){
         return new Timestamp(System.currentTimeMillis()).toString();
+    }
+
+    public List<String> getAllColumns(String table){
+        Cursor cursor = this.db.rawQuery("SELECT * FROM " + table , null);
+        cursor.moveToFirst();
+        List<String> columns =  Arrays.asList(cursor.getColumnNames());
+        cursor.close();
+        return columns;
     }
 }

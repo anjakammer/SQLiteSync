@@ -1,10 +1,12 @@
 package de.anjakammer.bassa;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,6 @@ public class QuestionDataSource {
 
     public void open() {
         dbHandler.getWritableDatabase();
-        Log.d(LOG_TAG, "Path to database: " + database.getPath());
     }
 
     public void close() {
@@ -124,24 +125,26 @@ public class QuestionDataSource {
     }
 
     private Question cursorToQuestion(Cursor cursor) {
+
+
+
+
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_ID);
         int idQuestion = cursor.getColumnIndex(DBHandler.COLUMN_DESCRIPTION);
         int idTitle = cursor.getColumnIndex(DBHandler.COLUMN_TITLE);
-        int idIsDeleted = cursor.getColumnIndex(DBHandler.COLUMN_ISDELETED);
 
         String description = cursor.getString(idQuestion);
         String title = cursor.getString(idTitle);
         long id = cursor.getLong(idIndex);
 
-        int intValueIsDeleted = cursor.getInt(idIsDeleted);
-        boolean isDeleted = (intValueIsDeleted != 0);
 
-        Question question = new Question(description, title, id, isDeleted);
+        cursor.close();
+
+        Question question = new Question(description, title, id, false);
         //todo test, please remove this
-        insertFakeAnswers(id);
+//        insertFakeAnswers(id);
         // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
-        Log.d(LOG_TAG, "Mit Antwort " + id + " Inhalt: " + question.toString());
         return question;
     }
     private Answer cursorToAnswer(Cursor cursor) {
@@ -154,7 +157,7 @@ public class QuestionDataSource {
         String participant = cursor.getString(idParticipant);
         long id = cursor.getLong(idIndex);
         long question_id = cursor.getLong(idQuestionID);
-
+        cursor.close();
         return new Answer(description, participant, id, question_id);
     }
 
