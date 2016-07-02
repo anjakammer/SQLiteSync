@@ -8,7 +8,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +93,7 @@ public class SQLiteSyncHelper {
 
         db.update(table,
                 values,
-                COLUMN_ID + "=" + _id,
+                COLUMN_ID + " = " + _id,
                 null);
 
         Log.d(LOG_TAG, "Object marked as deleted in table: "+ table+ ", _id: " + _id );
@@ -104,7 +103,7 @@ public class SQLiteSyncHelper {
         values.put(COLUMN_TIMESTAMP, getTimestamp());
         db.update(table,
                 values,
-                COLUMN_ID + "=" + _id,
+                COLUMN_ID + " = " + _id,
                 null);
 
         Log.d(LOG_TAG, "Object updated in table: "+ table +", _id: " + _id );
@@ -220,7 +219,6 @@ public class SQLiteSyncHelper {
     }
 
     private void addTimestampColumn(String table){
-        //todo does not add this fucking column
         List<String> columns = getAllColumns(table);
         if(!columns.contains(COLUMN_TIMESTAMP)){
             db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_TIMESTAMP + " TEXT");
