@@ -6,6 +6,7 @@
 - insert, update and delete data
 - close the application, to close the database
 - open the Android terminal emulator
+
 #### run this, to get root permissions
 ```sh
 $ su
