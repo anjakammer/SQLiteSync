@@ -125,10 +125,6 @@ public class QuestionDataSource {
     }
 
     private Question cursorToQuestion(Cursor cursor) {
-
-
-
-
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_ID);
         int idQuestion = cursor.getColumnIndex(DBHandler.COLUMN_DESCRIPTION);
         int idTitle = cursor.getColumnIndex(DBHandler.COLUMN_TITLE);
@@ -137,12 +133,9 @@ public class QuestionDataSource {
         String title = cursor.getString(idTitle);
         long id = cursor.getLong(idIndex);
 
-
-        cursor.close();
-
-        Question question = new Question(description, title, id, false);
+        Question question = new Question(description, title, id);
         //todo test, please remove this
-//        insertFakeAnswers(id);
+        insertFakeAnswers(id);
         // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
         return question;
@@ -157,7 +150,6 @@ public class QuestionDataSource {
         String participant = cursor.getString(idParticipant);
         long id = cursor.getLong(idIndex);
         long question_id = cursor.getLong(idQuestionID);
-        cursor.close();
         return new Answer(description, participant, id, question_id);
     }
 
@@ -192,21 +184,23 @@ public class QuestionDataSource {
         String whereQuestionID = "question_id = ?";
         String[] questionID = new String[] {String.valueOf(questionId)};
 
+
+
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
-                DBHandler.ANSWER_COLUMNS, whereQuestionID,
-                questionID,
-                null, null, null, null);
+                    DBHandler.ANSWER_COLUMNS, whereQuestionID,
+                    questionID,
+                    null, null, null, null);
+            cursor.moveToFirst();
+            Answer answer;
+            while (!cursor.isAfterLast()) {
+                answer = cursorToAnswer(cursor);
+                AnswerList.add(answer);
+                cursor.moveToNext();
+            }
 
-        cursor.moveToFirst();
-        Answer answer;
+            cursor.close();
 
-        while (!cursor.isAfterLast()) {
-            answer = cursorToAnswer(cursor);
-            AnswerList.add(answer);
-            cursor.moveToNext();
-        }
 
-        cursor.close();
         return AnswerList;
     }
 

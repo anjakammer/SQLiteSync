@@ -281,7 +281,7 @@ public class SQLiteSyncHelper {
     }
 
     private String getTimestamp(){
-        return new Timestamp(System.currentTimeMillis()).toString();
+        return String.valueOf(System.currentTimeMillis());
     }
 
     public List<String> getAllColumns(String table){

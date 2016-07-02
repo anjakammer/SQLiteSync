@@ -85,13 +85,9 @@ public class DBHandler extends SQLiteOpenHelper{
         try {
             db.execSQL(QUESTIONS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_QUESTIONNAIRE);
-            List<String> columns1 = SyncDBHelper.getAllColumns(TABLE_QUESTIONNAIRE);
-            Log.d(LOG_TAG, "columns of Questionnaire: "+ columns1.toString()); // TODO debug shit
+
             db.execSQL(ANSWERS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_ANSWERS);
-            List<String> columns2 = SyncDBHelper.getAllColumns(TABLE_ANSWERS);
-            Log.d(LOG_TAG, "columns of Answers: "+ columns2.toString()); // TODO debug shit
-
         }
         catch (Exception e) {
             Log.e(LOG_TAG, "creating failed for table onCreate: "+ e.getMessage());
