@@ -1,11 +1,12 @@
 
 # How to use SQLite3 on Android
-- turn on the debug mode of you device
-- connect your Android device via adb-usb-drivers of your device manufactorer
+- turn on the debug mode of your device
+- connect your Android device via adb-usb-drivers of the manufactorer
 - install and run your application on the device
 - insert, update and delete data
 - close the application, to close the database
 - open the Android terminal emulator
+
 #### run this, to get root permissions
 ```sh
 $ su
