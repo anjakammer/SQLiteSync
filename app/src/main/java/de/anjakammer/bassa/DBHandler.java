@@ -120,4 +120,11 @@ public class DBHandler extends SQLiteOpenHelper{
                 groupBy, having, orderBy, limit);
     }
 
+    public Cursor selectDeleted(boolean distinct, String table, String[] columns,
+                         String selection, String[] selectionArgs, String groupBy,
+                         String having, String orderBy, String limit){
+        return this.SyncDBHelper.selectDeleted(distinct, table, columns, selection, selectionArgs,
+                groupBy, having, orderBy, limit);
+    }
+
 }

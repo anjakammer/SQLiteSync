@@ -151,13 +151,9 @@ public class QuestionDataSource {
     public List<Question> getAllQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
-        String whereIsDeleted = "isDeleted = ?"; // TODO encapsulation needed !
-        String[] isFalse = new String[] {"0"};
 
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
-                DBHandler.QUESTION_COLUMNS, whereIsDeleted,
-                isFalse,
-                null, null, null, null);
+                DBHandler.QUESTION_COLUMNS, null, null, null, null, null, null);
 
         cursor.moveToFirst();
         Question question;
@@ -202,13 +198,8 @@ public class QuestionDataSource {
     public List<Question> getAllDeletedQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
-        String whereIsDeleted = "isDeleted = ?"; // TODO encapsulation needed !
-        String[] isFalse = new String[] {"1"};
-
-        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
-                DBHandler.QUESTION_COLUMNS, whereIsDeleted,
-                isFalse,
-                null, null, null, null);
+        Cursor cursor = dbHandler.selectDeleted(false, DBHandler.TABLE_QUESTIONNAIRE,
+                DBHandler.QUESTION_COLUMNS, null, null, null, null, null, null);
 
         cursor.moveToFirst();
         Question question;

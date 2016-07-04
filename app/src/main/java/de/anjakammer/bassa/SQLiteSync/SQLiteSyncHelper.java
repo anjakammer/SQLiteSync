@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import de.anjakammer.bassa.model.Answer;
+
 
 public class SQLiteSyncHelper {
 
@@ -127,8 +129,26 @@ public class SQLiteSyncHelper {
                          String selection, String[] selectionArgs, String groupBy,
                          String having, String orderBy, String limit){
 
-        // TODO which are NOT deleted
-//        if(selection)
+        if(selection.length()>0){
+            selection += "AND " + COLUMN_IS_DELETED + " = 0";
+        }else{
+            selection = COLUMN_IS_DELETED + " = 0";
+        }
+
+        return db.query(distinct, table, columns, selection, selectionArgs,
+                groupBy, having, orderBy, limit);
+    }
+
+    public Cursor selectDeleted(boolean distinct, String table, String[] columns,
+                         String selection, String[] selectionArgs, String groupBy,
+                         String having, String orderBy, String limit){
+
+        if(selection.length()>0){
+            selection += "AND " + COLUMN_IS_DELETED + " = 1";
+        }else{
+            selection = COLUMN_IS_DELETED + " = 1";
+        }
+
         return db.query(distinct, table, columns, selection, selectionArgs,
                 groupBy, having, orderBy, limit);
     }
@@ -148,18 +168,33 @@ public class SQLiteSyncHelper {
 
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
-        List<String> tables = getSyncableTableNames();
-        for (String table: tables) {
+        List<String> tableNames = getSyncableTableNames();
+        JSONObject tables = new JSONObject();
+        for (String tableName: tableNames) {
             Cursor cursor = this.db.query(
-                    table, new String[] {COLUMN_TIMESTAMP}, COLUMN_TIMESTAMP +" >= '?'",
+                    tableName, new String[] {COLUMN_TIMESTAMP}, COLUMN_TIMESTAMP +" >= '?'",
                     new String[] {lastSyncTime}
                     ,null, null, null
             );
-            // TODO fill delta JSONObject
+            int columnCount = cursor.getColumnCount();
+            String[] table = new String[columnCount];
+
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                for (int j=0; j<columnCount; j++) {
+                    table[j] = (cursor.getString(j));
+                }
+                try {
+                    tables.put(tableName,table);
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
+                            tableName + ": \n" +  e.getMessage());
+                }
+                cursor.moveToNext();
+            }
             cursor.close();
         }
         return delta;
-
     }
 
     private JSONObject prepareDeltaObject(String lastSyncTime, String dbId){
