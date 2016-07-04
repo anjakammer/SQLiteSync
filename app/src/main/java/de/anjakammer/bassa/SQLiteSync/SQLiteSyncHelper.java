@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import java.util.concurrent.ExecutionException;
 
 
 public class SQLiteSyncHelper {
@@ -191,10 +191,22 @@ public class SQLiteSyncHelper {
     public List<String> getSyncableTableNames(){
         List<String> result = new ArrayList<>();
         Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master", null);
-        // TODO nur tabellen in die Liste schmeißen, die auch is_deleted und timestamp haben
+
         cursor.moveToFirst();
+        String tablename;
         while (!cursor.isAfterLast()) {
-            result.add(cursor.getString(0));
+            tablename = cursor.getString(0);
+
+            Cursor columns = db.query(false, "answers" , null, null, null,
+                    null, null, null, "1");
+            columns.moveToFirst();
+            int isDeleted = columns.getColumnIndex(COLUMN_IS_DELETED);
+            int timestamp = columns.getColumnIndex(COLUMN_TIMESTAMP);
+            columns.close();
+
+            if(isDeleted >= 0 && timestamp >= 0){
+                result.add(tablename);
+            }
             cursor.moveToNext();
         }
         cursor.close();
