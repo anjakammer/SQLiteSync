@@ -10,11 +10,10 @@ public class Question {
     private boolean isDeleted;
     private List<Answer> answers;
 
-    public Question(String description, String title, long id, boolean isDeleted) {
+    public Question(String description, String title, long id) {
         this.description = description;
         this.title = title;
         this.id = id;
-        this.isDeleted = isDeleted;
     }
 
     public String getDescription() {
@@ -59,10 +58,6 @@ public class Question {
 
     @Override
     public String toString() {
-        String str = title + ": " + description + "\n Answers: \n";
-        for (Answer answer: getAnswers()) {
-            str += answer.toString()+ "\n";
-        }
-        return str;
+       return title + ": " + description;
     }
 }
