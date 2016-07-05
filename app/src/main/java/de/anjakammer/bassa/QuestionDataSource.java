@@ -97,13 +97,11 @@ public class QuestionDataSource {
         dbHandler.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
     }
 
-    public Question updateQuestion(long _id, String newQuestion, String newTitle, boolean newIsDeleted) {
-        int intValueIsDeleted = (newIsDeleted) ? 1 : 0;
+    public Question updateQuestion(long _id, String newQuestion, String newTitle) {
 
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_DESCRIPTION, newQuestion);
         values.put(DBHandler.COLUMN_TITLE, newTitle);
-        values.put(DBHandler.COLUMN_ISDELETED, intValueIsDeleted);
 
         dbHandler.update(DBHandler.TABLE_QUESTIONNAIRE, _id, values);
 
@@ -118,6 +116,8 @@ public class QuestionDataSource {
 
         return Question;
     }
+
+
 
     private Question cursorToQuestion(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_ID);

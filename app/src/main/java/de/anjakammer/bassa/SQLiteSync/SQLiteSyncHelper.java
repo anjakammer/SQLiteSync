@@ -146,8 +146,8 @@ public class SQLiteSyncHelper {
     }
 
     public Cursor selectDeleted(boolean distinct, String table, String[] columns,
-                         String selection, String[] selectionArgs, String groupBy,
-                         String having, String orderBy, String limit){
+                                String selection, String[] selectionArgs, String groupBy,
+                                String having, String orderBy, String limit){
 
         if(selection != null){
             selection += " AND " + COLUMN_IS_DELETED + " = 1";
@@ -179,36 +179,37 @@ public class SQLiteSyncHelper {
 
         for (String tableName: tableNames) {
 
-           Cursor cursor = this.db.query(
+            Cursor cursor = this.db.query(
                     tableName, null, COLUMN_TIMESTAMP + " >= ?",
                     new String[]{lastSyncTime}
                     , null, null, null
             );
 
             String[] columnNames = cursor.getColumnNames();
-            JSONObject table = new JSONObject();
-
+            JSONArray table = new JSONArray();
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
+                JSONObject tuple = new JSONObject();
                 for (String columnName : columnNames) {
                     try {
-                        table.put(columnName, cursor.getString(cursor.getColumnIndex(columnName)));
+                        tuple.put(columnName, cursor.getString(cursor.getColumnIndex(columnName)));
                     } catch (JSONException e) {
                         e.printStackTrace();
                         Log.e(LOG_TAG, "JSONObject error for writing delta JSON for columnName: " +
                                 columnName + " in table " + tableName +": \n" +  e.getMessage());
                     }
                 }
-                try {
-                    tables.put(tableName,table);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
-                            tableName + ": \n" +  e.getMessage());
-                }
+                table.put(tuple);
                 cursor.moveToNext();
             }
             cursor.close();
+            try {
+                tables.put(tableName,table);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
+                        tableName + ": \n" +  e.getMessage());
+            }
         }
 
         try {
@@ -290,7 +291,7 @@ public class SQLiteSyncHelper {
     private void addIsDeletedColumn(String table){
         List<String> columns = getAllColumns(table);
         if(!columns.contains(COLUMN_IS_DELETED)){
-            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER");
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER DEFAULT 0");
         }
     }
 
