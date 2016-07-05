@@ -38,17 +38,16 @@ public class MainActivity extends AppCompatActivity {
     private ListView mQuestionsListView;
     private ListView mAnswersListView;
     private ListView mDeletedQuestionsListView;
-    private DetailFragment detailFragment;
-    private ListFragment listFragment;
     private FloatingActionButton fab;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        detailFragment = new DetailFragment();
-        listFragment = new ListFragment();
+        DetailFragment detailFragment = new DetailFragment();
+        ListFragment listFragment = new ListFragment();
 
         dataSource = new QuestionDataSource(this);
         initializeQuestionsListView();
@@ -286,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        Question updatedQuestion = dataSource.updateQuestion(Question.getId(), description, title, Question.isDeleted());
+                        Question updatedQuestion = dataSource.updateQuestion(Question.getId(), description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }

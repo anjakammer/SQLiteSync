@@ -1,9 +1,15 @@
 package de.anjakammer.bassa.SQLiteSync;
 
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.database.CharArrayBuffer;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -129,8 +135,8 @@ public class SQLiteSyncHelper {
                          String selection, String[] selectionArgs, String groupBy,
                          String having, String orderBy, String limit){
 
-        if(selection.length()>0){
-            selection += "AND " + COLUMN_IS_DELETED + " = 0";
+        if(selection != null){
+            selection += " AND " + COLUMN_IS_DELETED + " = 0";
         }else{
             selection = COLUMN_IS_DELETED + " = 0";
         }
@@ -140,11 +146,11 @@ public class SQLiteSyncHelper {
     }
 
     public Cursor selectDeleted(boolean distinct, String table, String[] columns,
-                         String selection, String[] selectionArgs, String groupBy,
-                         String having, String orderBy, String limit){
+                                String selection, String[] selectionArgs, String groupBy,
+                                String having, String orderBy, String limit){
 
-        if(selection.length()>0){
-            selection += "AND " + COLUMN_IS_DELETED + " = 1";
+        if(selection != null){
+            selection += " AND " + COLUMN_IS_DELETED + " = 1";
         }else{
             selection = COLUMN_IS_DELETED + " = 1";
         }
@@ -155,44 +161,60 @@ public class SQLiteSyncHelper {
 
     public JSONObject getDelta(JSONObject peer) {
 
-        // TODO test-data from peer delta
-        String lastSyncTime = "1462109540";
-        peer = new JSONObject();
+        String lastSyncTime = null;
         try {
-            peer.put(KEY_LASTSYNCTIME,lastSyncTime);
+            lastSyncTime = peer.getString(KEY_LASTSYNCTIME);
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error for writing test-peer JSON: " + e.getMessage());
+            Log.e(LOG_TAG, "JSONObject error for getting lastSyncTime from peer: "
+                    +  e.getMessage());
         }
-        // TODO test-data from peer delta
 
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
         List<String> tableNames = getSyncableTableNames();
         JSONObject tables = new JSONObject();
-        for (String tableName: tableNames) {
-            Cursor cursor = this.db.query(
-                    tableName, new String[] {COLUMN_TIMESTAMP}, COLUMN_TIMESTAMP +" >= '?'",
-                    new String[] {lastSyncTime}
-                    ,null, null, null
-            );
-            int columnCount = cursor.getColumnCount();
-            String[] table = new String[columnCount];
 
+        for (String tableName: tableNames) {
+
+            Cursor cursor = this.db.query(
+                    tableName, null, COLUMN_TIMESTAMP + " >= ?",
+                    new String[]{lastSyncTime}
+                    , null, null, null
+            );
+
+            String[] columnNames = cursor.getColumnNames();
+            JSONArray table = new JSONArray();
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                for (int j=0; j<columnCount; j++) {
-                    table[j] = (cursor.getString(j));
+                JSONObject tuple = new JSONObject();
+                for (String columnName : columnNames) {
+                    try {
+                        tuple.put(columnName, cursor.getString(cursor.getColumnIndex(columnName)));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, "JSONObject error for writing delta JSON for columnName: " +
+                                columnName + " in table " + tableName +": \n" +  e.getMessage());
+                    }
                 }
-                try {
-                    tables.put(tableName,table);
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
-                            tableName + ": \n" +  e.getMessage());
-                }
+                table.put(tuple);
                 cursor.moveToNext();
             }
             cursor.close();
+            try {
+                tables.put(tableName,table);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
+                        tableName + ": \n" +  e.getMessage());
+            }
+        }
+
+        try {
+            delta.put("tables", tables);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error while adding tables to delta: " + e.getMessage());
         }
         return delta;
     }
@@ -224,15 +246,22 @@ public class SQLiteSyncHelper {
     }
 
     public List<String> getSyncableTableNames(){
-        List<String> result = new ArrayList<>();
+
+        List<String> tableNames = new ArrayList<>();
         Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master", null);
-
         cursor.moveToFirst();
-        String tablename;
         while (!cursor.isAfterLast()) {
-            tablename = cursor.getString(0);
+            tableNames.add(cursor.getString(0));
+            cursor.moveToNext();
+        }
+        cursor.close();
 
-            Cursor columns = db.query(false, "answers" , null, null, null,
+
+        List<String> result = new ArrayList<>();
+        for(String tableName : tableNames) {
+
+            Cursor columns = db.query(false, tableName
+                    , null, null, null,
                     null, null, null, "1");
             columns.moveToFirst();
             int isDeleted = columns.getColumnIndex(COLUMN_IS_DELETED);
@@ -240,11 +269,10 @@ public class SQLiteSyncHelper {
             columns.close();
 
             if(isDeleted >= 0 && timestamp >= 0){
-                result.add(tablename);
+                result.add(tableName);
             }
-            cursor.moveToNext();
         }
-        cursor.close();
+
         result.remove(TABLE_SETTINGS);
         return result;
     }
@@ -261,7 +289,7 @@ public class SQLiteSyncHelper {
     private void addIsDeletedColumn(String table){
         List<String> columns = getAllColumns(table);
         if(!columns.contains(COLUMN_IS_DELETED)){
-            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER");
+            db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + COLUMN_IS_DELETED + " INTEGER DEFAULT 0");
         }
     }
 

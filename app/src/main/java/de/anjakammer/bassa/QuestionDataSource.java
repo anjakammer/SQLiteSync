@@ -38,17 +38,6 @@ public class QuestionDataSource {
         dbHandler = new DBHandler(context);
     }
 
-    // TODO remove this testing method
-    private void insertFakeAnswers(long question_id){
-        try{
-            createAnswer("not answered yet", "Peer1", question_id);
-            createAnswer("not answered yet", "Peer2", question_id);
-        }catch (Exception e){
-            e.printStackTrace();
-            Log.e(LOG_TAG, "createAnswer failed: " + e.getMessage());
-        }
-    }
-
     public void open() {
         dbHandler.getWritableDatabase();
     }
@@ -97,13 +86,11 @@ public class QuestionDataSource {
         dbHandler.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
     }
 
-    public Question updateQuestion(long _id, String newQuestion, String newTitle, boolean newIsDeleted) {
-        int intValueIsDeleted = (newIsDeleted) ? 1 : 0;
+    public Question updateQuestion(long _id, String newQuestion, String newTitle) {
 
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_DESCRIPTION, newQuestion);
         values.put(DBHandler.COLUMN_TITLE, newTitle);
-        values.put(DBHandler.COLUMN_ISDELETED, intValueIsDeleted);
 
         dbHandler.update(DBHandler.TABLE_QUESTIONNAIRE, _id, values);
 
@@ -119,6 +106,8 @@ public class QuestionDataSource {
         return Question;
     }
 
+
+
     private Question cursorToQuestion(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_ID);
         int idQuestion = cursor.getColumnIndex(DBHandler.COLUMN_DESCRIPTION);
@@ -129,9 +118,6 @@ public class QuestionDataSource {
         long id = cursor.getLong(idIndex);
 
         Question question = new Question(description, title, id);
-        //todo test, please remove this
-        insertFakeAnswers(id);
-        // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
         return question;
     }
