@@ -38,17 +38,6 @@ public class QuestionDataSource {
         dbHandler = new DBHandler(context);
     }
 
-    // TODO remove this testing method
-    private void insertFakeAnswers(long question_id){
-        try{
-            createAnswer("not answered yet", "Peer1", question_id);
-            createAnswer("not answered yet", "Peer2", question_id);
-        }catch (Exception e){
-            e.printStackTrace();
-            Log.e(LOG_TAG, "createAnswer failed: " + e.getMessage());
-        }
-    }
-
     public void open() {
         dbHandler.getWritableDatabase();
     }
@@ -129,9 +118,6 @@ public class QuestionDataSource {
         long id = cursor.getLong(idIndex);
 
         Question question = new Question(description, title, id);
-        //todo test, please remove this
-        insertFakeAnswers(id);
-        // todo test, please remove this
         question.setAnswers(getRelatedAnswers(id));
         return question;
     }

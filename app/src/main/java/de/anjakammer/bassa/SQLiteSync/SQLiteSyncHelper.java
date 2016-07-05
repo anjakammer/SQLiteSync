@@ -161,16 +161,14 @@ public class SQLiteSyncHelper {
 
     public JSONObject getDelta(JSONObject peer) {
 
-        // TODO test-data from peer delta
-        String lastSyncTime = "1462109540";
-        peer = new JSONObject();
+        String lastSyncTime = null;
         try {
-            peer.put(KEY_LASTSYNCTIME,lastSyncTime);
+            lastSyncTime = peer.getString(KEY_LASTSYNCTIME);
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error for writing test-peer JSON: " + e.getMessage());
+            Log.e(LOG_TAG, "JSONObject error for getting lastSyncTime from peer: "
+                    +  e.getMessage());
         }
-        // TODO test-data from peer delta
 
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
@@ -216,7 +214,7 @@ public class SQLiteSyncHelper {
             delta.put("tables", tables);
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error while insertig tables to delta: " + e.getMessage());
+            Log.e(LOG_TAG, "JSONObject error while adding tables to delta: " + e.getMessage());
         }
         return delta;
     }

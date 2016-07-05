@@ -81,7 +81,7 @@ public class DBHandler extends SQLiteOpenHelper{
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
 
-        Log.d(LOG_TAG, SyncDBHelper.getDelta(new JSONObject()).toString());
+        Log.d(LOG_TAG, SyncDBHelper.getDelta(new TestPeer().getPeerDelta()).toString());
 
     }
 
