@@ -1,9 +1,15 @@
 package de.anjakammer.bassa.SQLiteSync;
 
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.database.CharArrayBuffer;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -129,8 +135,8 @@ public class SQLiteSyncHelper {
                          String selection, String[] selectionArgs, String groupBy,
                          String having, String orderBy, String limit){
 
-        if(selection.length()>0){
-            selection += "AND " + COLUMN_IS_DELETED + " = 0";
+        if(selection != null){
+            selection += " AND " + COLUMN_IS_DELETED + " = 0";
         }else{
             selection = COLUMN_IS_DELETED + " = 0";
         }
@@ -143,8 +149,8 @@ public class SQLiteSyncHelper {
                          String selection, String[] selectionArgs, String groupBy,
                          String having, String orderBy, String limit){
 
-        if(selection.length()>0){
-            selection += "AND " + COLUMN_IS_DELETED + " = 1";
+        if(selection != null){
+            selection += " AND " + COLUMN_IS_DELETED + " = 1";
         }else{
             selection = COLUMN_IS_DELETED + " = 1";
         }
@@ -170,29 +176,46 @@ public class SQLiteSyncHelper {
 
         List<String> tableNames = getSyncableTableNames();
         JSONObject tables = new JSONObject();
+
         for (String tableName: tableNames) {
-            Cursor cursor = this.db.query(
-                    tableName, new String[] {COLUMN_TIMESTAMP}, COLUMN_TIMESTAMP +" >= '?'",
-                    new String[] {lastSyncTime}
-                    ,null, null, null
+
+           Cursor cursor = this.db.query(
+                    tableName, null, COLUMN_TIMESTAMP + " >= ?",
+                    new String[]{lastSyncTime}
+                    , null, null, null
             );
-            int columnCount = cursor.getColumnCount();
-            String[] table = new String[columnCount];
+
+            String[] columnNames = cursor.getColumnNames();
+            JSONObject table = new JSONObject();
 
             cursor.moveToFirst();
             while (!cursor.isAfterLast()) {
-                for (int j=0; j<columnCount; j++) {
-                    table[j] = (cursor.getString(j));
+                for (String columnName : columnNames) {
+                    try {
+                        table.put(columnName, cursor.getString(cursor.getColumnIndex(columnName)));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.e(LOG_TAG, "JSONObject error for writing delta JSON for columnName: " +
+                                columnName + " in table " + tableName +": \n" +  e.getMessage());
+                    }
                 }
                 try {
                     tables.put(tableName,table);
                 } catch (JSONException e) {
+                    e.printStackTrace();
                     Log.e(LOG_TAG, "JSONObject error for writing delta JSON for table: " +
                             tableName + ": \n" +  e.getMessage());
                 }
                 cursor.moveToNext();
             }
             cursor.close();
+        }
+
+        try {
+            delta.put("tables", tables);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error while insertig tables to delta: " + e.getMessage());
         }
         return delta;
     }
@@ -224,15 +247,22 @@ public class SQLiteSyncHelper {
     }
 
     public List<String> getSyncableTableNames(){
-        List<String> result = new ArrayList<>();
+
+        List<String> tableNames = new ArrayList<>();
         Cursor cursor = this.db.rawQuery("SELECT DISTINCT tbl_name FROM sqlite_master", null);
-
         cursor.moveToFirst();
-        String tablename;
         while (!cursor.isAfterLast()) {
-            tablename = cursor.getString(0);
+            tableNames.add(cursor.getString(0));
+            cursor.moveToNext();
+        }
+        cursor.close();
 
-            Cursor columns = db.query(false, "answers" , null, null, null,
+
+        List<String> result = new ArrayList<>();
+        for(String tableName : tableNames) {
+
+            Cursor columns = db.query(false, tableName
+                    , null, null, null,
                     null, null, null, "1");
             columns.moveToFirst();
             int isDeleted = columns.getColumnIndex(COLUMN_IS_DELETED);
@@ -240,11 +270,10 @@ public class SQLiteSyncHelper {
             columns.close();
 
             if(isDeleted >= 0 && timestamp >= 0){
-                result.add(tablename);
+                result.add(tableName);
             }
-            cursor.moveToNext();
         }
-        cursor.close();
+
         result.remove(TABLE_SETTINGS);
         return result;
     }

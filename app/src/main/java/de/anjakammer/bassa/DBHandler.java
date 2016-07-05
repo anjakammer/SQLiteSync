@@ -5,8 +5,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Path;
+import android.provider.MediaStore;
 import android.util.Log;
 
+import org.json.JSONObject;
+
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,6 +80,9 @@ public class DBHandler extends SQLiteOpenHelper{
         if(this.SyncDBHelper == null){
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
+
+        Log.d(LOG_TAG, SyncDBHelper.getDelta(new JSONObject()).toString());
+
     }
 
     @Override
