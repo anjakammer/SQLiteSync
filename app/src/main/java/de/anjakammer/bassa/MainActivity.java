@@ -1,7 +1,6 @@
 package de.anjakammer.bassa;
 
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
@@ -11,10 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
-import android.view.inputmethod.InputMethodManager;
+
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
@@ -34,7 +32,7 @@ import de.anjakammer.bassa.model.Question;
 public class MainActivity extends AppCompatActivity {
 
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private QuestionDataSource dataSource;
+    private DataSource dataSource;
     private ListView mQuestionsListView;
     private ListView mAnswersListView;
     private ListView mDeletedQuestionsListView;
@@ -49,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         DetailFragment detailFragment = new DetailFragment();
         ListFragment listFragment = new ListFragment();
 
-        dataSource = new QuestionDataSource(this);
+        dataSource = new DataSource(this);
         initializeQuestionsListView();
         initializeDeletedQuestionsListView();
         activateAddButton();

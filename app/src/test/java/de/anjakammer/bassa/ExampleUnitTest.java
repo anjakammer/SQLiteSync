@@ -13,7 +13,7 @@ import de.anjakammer.bassa.model.Question;
  */
 public class ExampleUnitTest {
 
-    private QuestionDataSource dataSource;
+    private DataSource dataSource;
     private MainActivity main;
     private Question question;
     private Answer answer;
@@ -22,7 +22,7 @@ public class ExampleUnitTest {
     @Before
     private void setUp() throws Exception{
         this.main = new MainActivity();
-        this.dataSource = new QuestionDataSource(this.main);
+        this.dataSource = new DataSource(this.main);
         question = this.dataSource.createQuestion("first Question", "1");
         answer = this.dataSource.createAnswer("first Answer", "Peer1", question.getId());
         answerTwo = this.dataSource.createAnswer("first Answer", "Peer2", question.getId());

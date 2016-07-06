@@ -1,12 +1,9 @@
 package de.anjakammer.bassa;
 
 import android.content.Context;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,26 +12,12 @@ import de.anjakammer.bassa.model.Answer;
 import de.anjakammer.bassa.model.Question;
 
 
-public class QuestionDataSource {
+public class DataSource {
 
-    private static final String LOG_TAG = QuestionDataSource.class.getSimpleName();
+    private static final String LOG_TAG = DataSource.class.getSimpleName();
     private DBHandler dbHandler;
 
-//    private String[] questionColumns = {
-//            DBHandler.COLUMN_ID,
-//            DBHandler.COLUMN_DESCRIPTION,
-//            DBHandler.COLUMN_TITLE
-//    };
-//
-//    private String[] answerColumns = {
-//            DBHandler.COLUMN_A_ID,
-//            DBHandler.COLUMN_A_DESCRIPTION,
-//            DBHandler.COLUMN_A_PARTICIPANT,
-//            DBHandler.COLUMN_A_QUESTION_ID
-//    };
-
-
-    public QuestionDataSource(Context context) {
+    public DataSource(Context context) {
         dbHandler = new DBHandler(context);
     }
 
