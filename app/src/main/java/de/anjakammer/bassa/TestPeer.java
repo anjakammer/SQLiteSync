@@ -3,6 +3,7 @@ package de.anjakammer.bassa;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,10 +14,10 @@ public class TestPeer {
         JSONObject delta = new JSONObject();
         try {
             delta.put("lastSyncTime",lastSyncTime);
-            delta.put("DB-ID","QuestionnaireGroup1");
+            delta.put("DB_ID","QuestionnaireGroup1");
             delta.put("isMaster","false");
-            delta.put("tables",new JSONObject(
-                    "\"Answers\":[{\"_id\":\"1\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003223\"},{\"_id\":\"2\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer2\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003233\"},{\"_id\":\"3\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003241\"},{\"_id\":\"4\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer2\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003246\"},{\"_id\":\"5\",\"question_id\":\"2\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748009475\"}]}]}"
+            delta.put("tables",new JSONArray(
+                    "[{\"Answers\":[{\"_id\":\"1\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003223\"},{\"_id\":\"2\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer2\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003233\"},{\"_id\":\"3\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003241\"},{\"_id\":\"4\",\"question_id\":\"1\",\"answer\":\"not answered yet\",\"participant\":\"Peer2\",\"isDeleted\":\"0\",\"timestamp\":\"1467748003246\"},{\"_id\":\"5\",\"question_id\":\"2\",\"answer\":\"not answered yet\",\"participant\":\"Peer1\",\"isDeleted\":\"0\",\"timestamp\":\"1467748009475\"}]}]"
             ));
         } catch (JSONException e) {
             e.printStackTrace();

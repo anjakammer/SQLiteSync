@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedWriter;
@@ -81,7 +82,14 @@ public class DBHandler extends SQLiteOpenHelper{
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
 
-        Log.d(LOG_TAG, SyncDBHelper.getDelta(new TestPeer().getPeerDelta()).toString());
+        try {
+            if(SyncDBHelper.updateDB(new TestPeer().getPeerDelta())){
+                Log.d(LOG_TAG, "successfully DB update");
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
     }
 

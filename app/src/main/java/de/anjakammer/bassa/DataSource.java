@@ -144,8 +144,6 @@ public class DataSource {
         String whereQuestionID = "question_id = ?";
         String[] questionID = new String[] {String.valueOf(questionId)};
 
-
-
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
                     DBHandler.ANSWER_COLUMNS, whereQuestionID,
                     questionID,
@@ -157,7 +155,6 @@ public class DataSource {
                 AnswerList.add(answer);
                 cursor.moveToNext();
             }
-
             cursor.close();
 
 
