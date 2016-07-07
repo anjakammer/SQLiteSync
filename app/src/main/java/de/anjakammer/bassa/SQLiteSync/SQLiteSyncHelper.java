@@ -7,8 +7,11 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import java.util.List;
 import de.anjakammer.bassa.Exceptions.SyncableDatabaseException;
 
@@ -99,21 +102,16 @@ public class SQLiteSyncHelper {
         if(values.get(COLUMN_TIMESTAMP) == null){
             values.put(COLUMN_TIMESTAMP, getTimestamp());
         }
-
-        try {
-            int update_id = db.update(table,
-                    values,
-                    COLUMN_ID + " = " + _id,
-                    null);
-            if(update_id < 0){
-                Log.d(LOG_TAG, "updating an Object failed for table: " + table + ", _id: " + _id);
-                return false;
-            }
-                Log.d(LOG_TAG, "Object updated in table: " + table + ", _id: " + _id);
-        }catch(Exception e){
+        int update_id = db.update(table,
+                values,
+                COLUMN_ID + " = " + _id,
+                null);
+        if(update_id < 0){
             Log.d(LOG_TAG, "updating an Object failed for table: " + table + ", _id: " + _id);
             return false;
         }
+        Log.d(LOG_TAG, "Object updated in table: " + table + ", _id: " + _id);
+
         return true;
     }
 
@@ -163,6 +161,9 @@ public class SQLiteSyncHelper {
     public boolean updateDB(JSONObject peer) throws JSONException {
         boolean updated;
 
+        Timestamp time =  new Timestamp(System.currentTimeMillis());
+        Log.d(LOG_TAG, "Started updating DB at" + time.toString() );
+
         if (peer.getString(KEY_DB_ID).equals(this.dbID)) {
 
             JSONArray tables = peer.getJSONArray(KEY_TABLES);
@@ -198,7 +199,8 @@ public class SQLiteSyncHelper {
                 }
             }
         }
-
+        Timestamp endtime =  new Timestamp(System.currentTimeMillis());
+        Log.d(LOG_TAG, "Ended updating DB at" + endtime.toString() );
         return true;
     }
 

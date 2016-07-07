@@ -13,7 +13,7 @@ import de.anjakammer.bassa.model.Question;
  */
 public class ExampleUnitTest {
 
-    private DataSource dataSource;
+    private ContentProvider contentProvider;
     private MainActivity main;
     private Question question;
     private Answer answer;
@@ -22,10 +22,10 @@ public class ExampleUnitTest {
     @Before
     private void setUp() throws Exception{
         this.main = new MainActivity();
-        this.dataSource = new DataSource(this.main);
-        question = this.dataSource.createQuestion("first Question", "1");
-        answer = this.dataSource.createAnswer("first Answer", "Peer1", question.getId());
-        answerTwo = this.dataSource.createAnswer("first Answer", "Peer2", question.getId());
+        this.contentProvider = new ContentProvider(this.main);
+        question = this.contentProvider.createQuestion("first Question", "1");
+        answer = this.contentProvider.createAnswer("first Answer", "Peer1", question.getId());
+        answerTwo = this.contentProvider.createAnswer("first Answer", "Peer2", question.getId());
     }
 
     @Test
@@ -48,6 +48,6 @@ public class ExampleUnitTest {
 
     @After
     private void tearDown() throws Exception{
-        this.dataSource.deleteQuestion(question);
+        this.contentProvider.deleteQuestion(question);
     }
 }

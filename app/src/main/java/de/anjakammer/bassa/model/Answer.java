@@ -3,12 +3,12 @@ package de.anjakammer.bassa.model;
 public class Answer {
 
     private String description;
-    private String participant;
+    private long participant;
     private long id;
     private long question_id;
 
 
-    public Answer(String description, String participant, long id,  long question_id) {
+    public Answer(String description, long participant, long id,  long question_id) {
         this.description = description;
         this.participant = participant;
         this.id = id;
@@ -23,11 +23,11 @@ public class Answer {
         this.description = description;
     }
 
-    public String getParticipant() {
+    public long getParticipant() {
         return participant;
     }
 
-    public void setParticipant(String participant) {
+    public void setParticipant(long participant) {
         this.participant = participant;
     }
 

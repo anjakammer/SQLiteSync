@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +28,13 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 
 import de.anjakammer.bassa.model.Answer;
+import de.anjakammer.bassa.model.Participant;
 import de.anjakammer.bassa.model.Question;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private DataSource dataSource;
+    private ContentProvider contentProvider;
     private ListView mQuestionsListView;
     private ListView mAnswersListView;
     private ListView mDeletedQuestionsListView;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         DetailFragment detailFragment = new DetailFragment();
         ListFragment listFragment = new ListFragment();
 
-        dataSource = new DataSource(this);
+        contentProvider = new ContentProvider(this);
         initializeQuestionsListView();
         initializeDeletedQuestionsListView();
         activateAddButton();
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        dataSource.open();
+        contentProvider.open();
         showAllListEntries();
         showAllDeletedListEntries();
     }
@@ -68,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    private void showAllListEntries () {
-        List<Question> QuestionList = dataSource.getAllQuestions();
+    private void showAllListEntries() {
+        List<Question> QuestionList = contentProvider.getAllQuestions();
         ArrayAdapter<Question> adapter = (ArrayAdapter<Question>) mQuestionsListView.getAdapter();
 
         adapter.clear();
@@ -77,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
-    private void showAllDeletedListEntries () {
-        List<Question> DeletedQuestionList = dataSource.getAllDeletedQuestions();
+    private void showAllDeletedListEntries() {
+        List<Question> DeletedQuestionList = contentProvider.getAllDeletedQuestions();
         ArrayAdapter<Question> adapterForDeleted = (ArrayAdapter<Question>) mDeletedQuestionsListView.getAdapter();
 
         adapterForDeleted.clear();
@@ -86,10 +88,10 @@ public class MainActivity extends AppCompatActivity {
         adapterForDeleted.notifyDataSetChanged();
     }
 
-    private void initializeAnswersListView(){
+    private void initializeAnswersListView() {
         List<Answer> emptyListForInitialization = new ArrayList<>();
         mAnswersListView = (ListView) findViewById(R.id.listview_answers);
-        ArrayAdapter<Answer> AnswersArrayAdapter = new ArrayAdapter<Answer> (
+        ArrayAdapter<Answer> AnswersArrayAdapter = new ArrayAdapter<Answer>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 emptyListForInitialization) {
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<Question> emptyListForInitialization = new ArrayList<>();
         mQuestionsListView = (ListView) findViewById(R.id.listview_questions);
-        ArrayAdapter<Question> QuestionArrayAdapter = new ArrayAdapter<Question> (
+        ArrayAdapter<Question> QuestionArrayAdapter = new ArrayAdapter<Question>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 emptyListForInitialization) {
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Question question = (Question) adapterView.getItemAtPosition(position);
                 TextView QuestionPlaceholder = (TextView) findViewById(R.id.question);
-                String str = question.getTitle() +": \n"+ question.getDescription();
+                String str = question.getTitle() + ": \n" + question.getDescription();
                 QuestionPlaceholder.setText(str);
 
                 List<Answer> AnswerList = question.getAnswers();
@@ -128,17 +130,17 @@ public class MainActivity extends AppCompatActivity {
     private void initializeDeletedQuestionsListView() {
         List<Question> emptyListForInitialization = new ArrayList<>();
         mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_questions);
-        ArrayAdapter<Question> DeletedQuestionArrayAdapter = new ArrayAdapter<Question> (
+        ArrayAdapter<Question> DeletedQuestionArrayAdapter = new ArrayAdapter<Question>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
                 emptyListForInitialization) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                View view =  super.getView(position, convertView, parent);
+                View view = super.getView(position, convertView, parent);
                 TextView textView = (TextView) view;
 
                 textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                textView.setTextColor(Color.rgb(175,175,175));
+                textView.setTextColor(Color.rgb(175, 175, 175));
                 return view;
             }
         };
@@ -205,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
                                 int postitionInListView = touchedQuestionsPositions.keyAt(i);
                                 Question Question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
                                 Log.d(LOG_TAG, "Position im ListView: " + postitionInListView + " Inhalt: " + Question.toString());
-                                dataSource.deleteQuestion(Question);
+                                contentProvider.deleteQuestion(Question);
                             }
                         }
                         showAllListEntries();
@@ -283,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        Question updatedQuestion = dataSource.updateQuestion(Question.getId(), description, title);
+                        Question updatedQuestion = contentProvider.updateQuestion(Question.getId(), description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }
@@ -307,9 +309,24 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText editTextDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
 
+        final String[] participantsIds = contentProvider.getParticipantsIds();
+
+        final List<Long> participants = new ArrayList<>();
+
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_title)
+                .setMultiChoiceItems(participantsIds, null,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            public void onClick(DialogInterface dialog, int item, boolean isChecked) {
+                                if (isChecked) {
+                                    participants.add(Long.valueOf(participantsIds[item]));
+
+                                } else {
+                                    participants.remove(Long.valueOf(participantsIds[item]));
+                                }
+                            }
+                        })
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -324,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
                             editTextDescription.setError(getString(R.string.editText_errorMessage));
                             return;
                         }
-                        dataSource.createQuestion(description, title);
+                        contentProvider.createQuestion(description, title, participants);
                         showAllListEntries();
                         dialog.dismiss();
                     }

@@ -41,6 +41,11 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String COLUMN_A_DESCRIPTION = "answer";
     public static final String COLUMN_A_PARTICIPANT = "participant";
 
+    public static final String TABLE_PARTICIPANTS = "Participants";
+    public static final String COLUMN_P_ID = "_id";
+    public static final String COLUMN_P_ADDRESS = "address";
+    public static final String COLUMN_P_NAME = "name";
+
     public static final String[] QUESTION_COLUMNS = {
             COLUMN_ID,
             COLUMN_DESCRIPTION,
@@ -54,6 +59,13 @@ public class DBHandler extends SQLiteOpenHelper{
             COLUMN_A_QUESTION_ID
     };
 
+    public static final String[] PARTICIPANTS_COLUMNS = {
+            COLUMN_P_ID,
+            COLUMN_P_ADDRESS,
+            COLUMN_P_NAME
+    };
+
+
     public static final String QUESTIONS_CREATE =
             "CREATE TABLE " + TABLE_QUESTIONNAIRE +
                     "( " + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -66,10 +78,17 @@ public class DBHandler extends SQLiteOpenHelper{
                     "( " + COLUMN_A_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_A_QUESTION_ID + " INTEGER, " +
                     COLUMN_A_DESCRIPTION + " TEXT NOT NULL, " +
-                    COLUMN_A_PARTICIPANT + " TEXT NOT NULL );";
+                    COLUMN_A_PARTICIPANT + " INTEGER NOT NULL );";
+
+    public static final String PARTICIPANTS_CREATE =
+            "CREATE TABLE " + TABLE_PARTICIPANTS +
+                    "( " + COLUMN_P_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_P_ADDRESS + " TEXT NOT NULL, " +
+                    COLUMN_P_NAME + " TEXT NOT NULL );";
 
     public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
     public static final String ANSWERS_DROP = "DROP TABLE IF EXISTS " + TABLE_ANSWERS;
+    public static final String PARTICIPANTS_DROP = "DROP TABLE IF EXISTS " + TABLE_PARTICIPANTS;
 
     public SQLiteSyncHelper SyncDBHelper;
 
@@ -90,7 +109,6 @@ public class DBHandler extends SQLiteOpenHelper{
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -104,6 +122,20 @@ public class DBHandler extends SQLiteOpenHelper{
 
             db.execSQL(ANSWERS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_ANSWERS);
+
+            db.execSQL(PARTICIPANTS_CREATE);
+            this.SyncDBHelper.makeTableSyncable(TABLE_PARTICIPANTS);
+            // TODO remove this test code
+            ContentValues valuesA = new ContentValues();
+            valuesA.put(COLUMN_P_NAME, "Peer1");
+            valuesA.put(COLUMN_P_ADDRESS, "1");
+            insert(TABLE_PARTICIPANTS,valuesA);
+            ContentValues valuesB = new ContentValues();
+            valuesB.put(COLUMN_P_NAME, "Peer2");
+            valuesB.put(COLUMN_P_ADDRESS, "2");
+            insert(TABLE_PARTICIPANTS,valuesB);
+            // TODO remove this test code
+
         }
         catch (Exception e) {
             Log.e(LOG_TAG, "creating failed for table onCreate: "+ e.getMessage());
@@ -115,6 +147,7 @@ public class DBHandler extends SQLiteOpenHelper{
         // TODO save data before dropping
         db.execSQL(QUESTIONS_DROP);
         db.execSQL(ANSWERS_DROP);
+        db.execSQL(PARTICIPANTS_DROP);
         this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         this.SyncDBHelper.tearDownSyncableDB();
         onCreate(db);
