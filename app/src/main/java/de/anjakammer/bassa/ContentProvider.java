@@ -1,40 +1,24 @@
 package de.anjakammer.bassa;
 
 import android.content.Context;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.anjakammer.bassa.model.Answer;
+import de.anjakammer.bassa.model.Participant;
 import de.anjakammer.bassa.model.Question;
 
 
-public class QuestionDataSource {
+public class ContentProvider {
 
-    private static final String LOG_TAG = QuestionDataSource.class.getSimpleName();
+    private static final String LOG_TAG = ContentProvider.class.getSimpleName();
     private DBHandler dbHandler;
 
-//    private String[] questionColumns = {
-//            DBHandler.COLUMN_ID,
-//            DBHandler.COLUMN_DESCRIPTION,
-//            DBHandler.COLUMN_TITLE
-//    };
-//
-//    private String[] answerColumns = {
-//            DBHandler.COLUMN_A_ID,
-//            DBHandler.COLUMN_A_DESCRIPTION,
-//            DBHandler.COLUMN_A_PARTICIPANT,
-//            DBHandler.COLUMN_A_QUESTION_ID
-//    };
-
-
-    public QuestionDataSource(Context context) {
+    public ContentProvider(Context context) {
         dbHandler = new DBHandler(context);
     }
 
@@ -62,12 +46,21 @@ public class QuestionDataSource {
         return answer;
     }
 
-    public Question createQuestion(String description, String title) {
+    public Question createQuestion(String description, String title, List<Long> participants) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_DESCRIPTION, description);
         values.put(DBHandler.COLUMN_TITLE, title);
 
         long insertId = dbHandler.insert(DBHandler.TABLE_QUESTIONNAIRE, values);
+
+        for (Long participant: participants) {
+            ContentValues answerValues = new ContentValues();
+            answerValues.put(DBHandler.COLUMN_A_DESCRIPTION, "not answered yet");
+            answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, insertId);
+            answerValues.put(DBHandler.COLUMN_A_PARTICIPANT, participant);
+
+            dbHandler.insert(DBHandler.TABLE_ANSWERS, answerValues);
+        }
 
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONNAIRE,
                 DBHandler.QUESTION_COLUMNS, DBHandler.COLUMN_ID + " = ?",
@@ -106,8 +99,6 @@ public class QuestionDataSource {
         return Question;
     }
 
-
-
     private Question cursorToQuestion(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_ID);
         int idQuestion = cursor.getColumnIndex(DBHandler.COLUMN_DESCRIPTION);
@@ -121,6 +112,7 @@ public class QuestionDataSource {
         question.setAnswers(getRelatedAnswers(id));
         return question;
     }
+
     private Answer cursorToAnswer(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_A_ID);
         int idDescription = cursor.getColumnIndex(DBHandler.COLUMN_A_DESCRIPTION);
@@ -128,10 +120,54 @@ public class QuestionDataSource {
         int idQuestionID = cursor.getColumnIndex(DBHandler.COLUMN_A_QUESTION_ID);
 
         String description = cursor.getString(idDescription);
-        String participant = cursor.getString(idParticipant);
+        long participant = cursor.getLong(idParticipant);
         long id = cursor.getLong(idIndex);
         long question_id = cursor.getLong(idQuestionID);
         return new Answer(description, participant, id, question_id);
+    }
+
+    private Participant cursorToParticipant(Cursor cursor) {
+        int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_P_ID);
+        int idAddress = cursor.getColumnIndex(DBHandler.COLUMN_P_ADDRESS);
+        int idName = cursor.getColumnIndex(DBHandler.COLUMN_P_NAME);
+
+        String address = cursor.getString(idAddress);
+        String name = cursor.getString(idName);
+        long id = cursor.getLong(idIndex);
+
+        return new Participant(address, name, id);
+    }
+
+    public List<Participant> getAllParticipants() {
+        List<Participant> participantList = new ArrayList<>();
+
+
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
+                DBHandler.PARTICIPANTS_COLUMNS, null, null, null, null, null, null);
+
+        cursor.moveToFirst();
+        Participant participant;
+
+        while (!cursor.isAfterLast()) {
+            participant = cursorToParticipant(cursor);
+            participantList.add(participant);
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+
+        return participantList;
+    }
+
+    public String[] getParticipantsIds(){
+        List<Participant> participantList = getAllParticipants();
+        String[] participantsArray = new String[participantList.size()];
+        int i = 0;
+        for (Participant participant: participantList) {
+            participantsArray[i] = String.valueOf(participant.getId());
+            i++;
+        }
+        return participantsArray;
     }
 
     public List<Question> getAllQuestions() {
@@ -161,21 +197,18 @@ public class QuestionDataSource {
         String whereQuestionID = "question_id = ?";
         String[] questionID = new String[] {String.valueOf(questionId)};
 
-
-
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
-                    DBHandler.ANSWER_COLUMNS, whereQuestionID,
-                    questionID,
-                    null, null, null, null);
-            cursor.moveToFirst();
-            Answer answer;
-            while (!cursor.isAfterLast()) {
-                answer = cursorToAnswer(cursor);
-                AnswerList.add(answer);
-                cursor.moveToNext();
-            }
-
-            cursor.close();
+                DBHandler.ANSWER_COLUMNS, whereQuestionID,
+                questionID,
+                null, null, null, null);
+        cursor.moveToFirst();
+        Answer answer;
+        while (!cursor.isAfterLast()) {
+            answer = cursorToAnswer(cursor);
+            AnswerList.add(answer);
+            cursor.moveToNext();
+        }
+        cursor.close();
 
 
         return AnswerList;
