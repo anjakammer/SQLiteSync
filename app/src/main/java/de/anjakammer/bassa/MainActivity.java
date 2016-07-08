@@ -274,25 +274,8 @@ public class MainActivity extends AppCompatActivity {
         final EditText editTextNewDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
         editTextNewDescription.setText(question.getDescription());
 
-        final String[] participantsIds = contentProvider.getParticipantsIds();
-
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_title)
-                .setMultiChoiceItems(participantsIds,
-                        contentProvider.getCheckedParticipants(participantsIds, question.getId()),
-                        new DialogInterface.OnMultiChoiceClickListener() {
-                            public void onClick(DialogInterface dialog, int item, boolean isChecked) {
-                                if (isChecked) {
-                                    contentProvider.createAnswer("not answered yet",
-                                            Long.valueOf(participantsIds[item]), question.getId());
-
-
-                                } else {
-                                    contentProvider.deleteAnswer(Long.valueOf(participantsIds[item]),
-                                            question.getId());
-                                }
-                            }
-                        })
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -305,7 +288,6 @@ public class MainActivity extends AppCompatActivity {
 
                         contentProvider.updateQuestion(question.getId(), description, title);
                         showAllListEntries();
-                        setmAnswersListView(question);
                         dialog.dismiss();
                     }
                 })
@@ -326,23 +308,9 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText editTextTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
         final EditText editTextDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
-        final String[] participantsIds = contentProvider.getParticipantsIds();
-        final List<Long> participants = new ArrayList<>();
-
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_add_questions_title)
-                .setMultiChoiceItems(participantsIds, null,
-                        new DialogInterface.OnMultiChoiceClickListener() {
-                            public void onClick(DialogInterface dialog, int item, boolean isChecked) {
-                                if (isChecked) {
-                                    participants.add(Long.valueOf(participantsIds[item]));
-
-                                } else {
-                                    participants.remove(Long.valueOf(participantsIds[item]));
-                                }
-                            }
-                        })
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -357,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
                             editTextDescription.setError(getString(R.string.editText_errorMessage));
                             return;
                         }
-                        contentProvider.createQuestion(description, title, participants);
+                        contentProvider.createQuestion(description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }

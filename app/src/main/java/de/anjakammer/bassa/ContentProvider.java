@@ -46,18 +46,19 @@ public class ContentProvider {
         return answer;
     }
 
-    public Question createQuestion(String description, String title, List<Long> participants) {
+    public Question createQuestion(String description, String title) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_DESCRIPTION, description);
         values.put(DBHandler.COLUMN_TITLE, title);
 
         long insertId = dbHandler.insert(DBHandler.TABLE_QUESTIONNAIRE, values);
 
-        for (Long participant: participants) {
+        String[] participants = getParticipantsIds();
+        for (String participant: participants) {
             ContentValues answerValues = new ContentValues();
             answerValues.put(DBHandler.COLUMN_A_DESCRIPTION, "not answered yet");
             answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, insertId);
-            answerValues.put(DBHandler.COLUMN_A_PARTICIPANT, participant);
+            answerValues.put(DBHandler.COLUMN_A_PARTICIPANT, Long.valueOf(participant));
 
             dbHandler.insert(DBHandler.TABLE_ANSWERS, answerValues);
         }
@@ -77,6 +78,11 @@ public class ContentProvider {
     public void deleteQuestion(Question question) {
         long _id = question.getId();
         dbHandler.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
+
+        List<Answer> answers = getRelatedAnswers(_id);
+        for(Answer answer : answers){
+            deleteAnswer(answer);
+        }
     }
 
     public void deleteAnswer(Answer answer) {
@@ -84,12 +90,12 @@ public class ContentProvider {
         dbHandler.delete(DBHandler.TABLE_ANSWERS, _id);
     }
 
-    public void deleteAnswer(long participantId, long questionId) {
+    public void deleteAnswer(long questionId) {
 
         Cursor answers = dbHandler.select(false,DBHandler.TABLE_ANSWERS,
                 new String[]{DBHandler.COLUMN_A_ID},
-                DBHandler.COLUMN_A_QUESTION_ID +" = ? AND "+ DBHandler.COLUMN_A_PARTICIPANT+" = ?",
-                new String[]{String.valueOf(questionId), String.valueOf(participantId)},
+                DBHandler.COLUMN_A_QUESTION_ID +" = ?",
+                new String[]{String.valueOf(questionId)},
                 null, null, null, null);
         answers.moveToFirst();
 
@@ -191,31 +197,6 @@ public class ContentProvider {
             i++;
         }
         return participantsArray;
-    }
-
-    public boolean[] getCheckedParticipants(String[] participantsIds, long questionId){
-        boolean[] checkedParticipants = new boolean[participantsIds.length];
-        int i = 0;
-        for (String participant: participantsIds) {
-            checkedParticipants[i] = isParticipant(questionId,Long.valueOf(participant));
-            i++;
-        }
-        return checkedParticipants;
-    }
-
-    public boolean isParticipant(long questionId, long participantId){
-
-        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,null,
-                DBHandler.COLUMN_A_QUESTION_ID+" = ? AND "+
-                        DBHandler.COLUMN_A_PARTICIPANT + " = ?",
-                new String[]{String.valueOf(questionId),
-                        String.valueOf(participantId)}, null, null, null, null);
-
-        if(cursor.getCount()< 1){
-            return false;
-        }
-
-        return true;
     }
 
     public List<Question> getAllQuestions() {
