@@ -102,6 +102,7 @@ public class DBHandler extends SQLiteOpenHelper{
         }
 
         try {
+            // TODO rerender view after updating the DB !
             if(SyncDBHelper.updateDB(new TestPeer().getPeerDelta())){
                 Log.d(LOG_TAG, "successfully DB update");
             }
@@ -144,7 +145,7 @@ public class DBHandler extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO save data before dropping
+        // TODO save data before dropping?
         db.execSQL(QUESTIONS_DROP);
         db.execSQL(ANSWERS_DROP);
         db.execSQL(PARTICIPANTS_DROP);

@@ -26,7 +26,7 @@ public class ContentProvider {
         dbHandler.getWritableDatabase();
     }
 
-    public Answer createAnswer(String description, String participant, long question_id) {
+    public Answer createAnswer(String description, long participant, long question_id) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_A_DESCRIPTION, description);
         values.put(DBHandler.COLUMN_A_PARTICIPANT, participant);
@@ -74,9 +74,32 @@ public class ContentProvider {
         return question;
     }
 
-    public void deleteQuestion(Question Question) {
-        long _id = Question.getId();
+    public void deleteQuestion(Question question) {
+        long _id = question.getId();
         dbHandler.delete(DBHandler.TABLE_QUESTIONNAIRE, _id);
+    }
+
+    public void deleteAnswer(Answer answer) {
+        long _id = answer.getId();
+        dbHandler.delete(DBHandler.TABLE_ANSWERS, _id);
+    }
+
+    public void deleteAnswer(long participantId, long questionId) {
+
+        Cursor answers = dbHandler.select(false,DBHandler.TABLE_ANSWERS,
+                new String[]{DBHandler.COLUMN_A_ID},
+                DBHandler.COLUMN_A_QUESTION_ID +" = ? AND "+ DBHandler.COLUMN_A_PARTICIPANT+" = ?",
+                new String[]{String.valueOf(questionId), String.valueOf(participantId)},
+                null, null, null, null);
+        answers.moveToFirst();
+
+        while (!answers.isAfterLast()) {
+            Long answerId = answers.getLong(answers.getColumnIndex(DBHandler.COLUMN_A_ID));
+                dbHandler.delete(DBHandler.TABLE_ANSWERS,answerId);
+
+            answers.moveToNext();
+        }
+        answers.close();
     }
 
     public Question updateQuestion(long _id, String newQuestion, String newTitle) {
@@ -168,6 +191,31 @@ public class ContentProvider {
             i++;
         }
         return participantsArray;
+    }
+
+    public boolean[] getCheckedParticipants(String[] participantsIds, long questionId){
+        boolean[] checkedParticipants = new boolean[participantsIds.length];
+        int i = 0;
+        for (String participant: participantsIds) {
+            checkedParticipants[i] = isParticipant(questionId,Long.valueOf(participant));
+            i++;
+        }
+        return checkedParticipants;
+    }
+
+    public boolean isParticipant(long questionId, long participantId){
+
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,null,
+                DBHandler.COLUMN_A_QUESTION_ID+" = ? AND "+
+                        DBHandler.COLUMN_A_PARTICIPANT + " = ?",
+                new String[]{String.valueOf(questionId),
+                        String.valueOf(participantId)}, null, null, null, null);
+
+        if(cursor.getCount()< 1){
+            return false;
+        }
+
+        return true;
     }
 
     public List<Question> getAllQuestions() {

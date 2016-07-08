@@ -190,7 +190,7 @@ public class SQLiteSyncHelper {
                             String key = tupleKeys.getString(iiii);
                             values.put(key, tuple.getString(key));
                         }
-                        // TODO kann nur geupdated werden, die Tupel müssen vorher existieren !
+                        // it is needed, that the tuple do exist. It just updates, no inserting
                         updated = update(tableName, values.getAsLong("_id"), values);
                         if (!updated) {
                             return false;

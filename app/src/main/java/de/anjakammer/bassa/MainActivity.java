@@ -1,5 +1,6 @@
 package de.anjakammer.bassa;
 
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
@@ -116,15 +117,18 @@ public class MainActivity extends AppCompatActivity {
                 TextView QuestionPlaceholder = (TextView) findViewById(R.id.question);
                 String str = question.getTitle() + ": \n" + question.getDescription();
                 QuestionPlaceholder.setText(str);
-
-                List<Answer> AnswerList = question.getAnswers();
-                ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
-
-                adapter.clear();
-                adapter.addAll(AnswerList);
-                adapter.notifyDataSetChanged();
+                setmAnswersListView(question);
             }
         });
+    }
+
+    private void setmAnswersListView(Question question){
+        List<Answer> AnswerList = question.getAnswers();
+        ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
+
+        adapter.clear();
+        adapter.addAll(AnswerList);
+        adapter.notifyDataSetChanged();
     }
 
     private void initializeDeletedQuestionsListView() {
@@ -205,9 +209,8 @@ public class MainActivity extends AppCompatActivity {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
                                 int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question Question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
-                                Log.d(LOG_TAG, "Position im ListView: " + postitionInListView + " Inhalt: " + Question.toString());
-                                contentProvider.deleteQuestion(Question);
+                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
+                                contentProvider.deleteQuestion(question);
                             }
                         }
                         showAllListEntries();
@@ -219,10 +222,9 @@ public class MainActivity extends AppCompatActivity {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
                                 int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question Question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
-                                Log.d(LOG_TAG, "Position im ListView: " + postitionInListView + " Inhalt: " + Question.toString());
+                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
 
-                                AlertDialog editQuestionDialog = createEditQuestionDialog(Question);
+                                AlertDialog editQuestionDialog = createEditQuestionDialog(question);
                                 editQuestionDialog.show();
                             }
                         }
@@ -259,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private AlertDialog createEditQuestionDialog(final Question Question) {
+    private AlertDialog createEditQuestionDialog(final Question question) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -267,13 +269,30 @@ public class MainActivity extends AppCompatActivity {
         View dialogsView = inflater.inflate(R.layout.dialog_edit_question, null);
 
         final EditText editTextNewTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
-        editTextNewTitle.setText(Question.getTitle());
+        editTextNewTitle.setText(question.getTitle());
 
         final EditText editTextNewDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
-        editTextNewDescription.setText(Question.getDescription());
+        editTextNewDescription.setText(question.getDescription());
+
+        final String[] participantsIds = contentProvider.getParticipantsIds();
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_title)
+                .setMultiChoiceItems(participantsIds,
+                        contentProvider.getCheckedParticipants(participantsIds, question.getId()),
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            public void onClick(DialogInterface dialog, int item, boolean isChecked) {
+                                if (isChecked) {
+                                    contentProvider.createAnswer("not answered yet",
+                                            Long.valueOf(participantsIds[item]), question.getId());
+
+
+                                } else {
+                                    contentProvider.deleteAnswer(Long.valueOf(participantsIds[item]),
+                                            question.getId());
+                                }
+                            }
+                        })
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -281,12 +300,12 @@ public class MainActivity extends AppCompatActivity {
                         String description = editTextNewDescription.getText().toString();
 
                         if ((TextUtils.isEmpty(title)) || (TextUtils.isEmpty(description))) {
-                            Log.d(LOG_TAG, "Ein Eintrag enthielt keinen Text. Daher Abbruch der Änderung.");
                             return;
                         }
 
-                        Question updatedQuestion = contentProvider.updateQuestion(Question.getId(), description, title);
+                        contentProvider.updateQuestion(question.getId(), description, title);
                         showAllListEntries();
+                        setmAnswersListView(question);
                         dialog.dismiss();
                     }
                 })
@@ -306,16 +325,13 @@ public class MainActivity extends AppCompatActivity {
         View dialogsView = inflater.inflate(R.layout.dialog_edit_question, null);
 
         final EditText editTextTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
-
         final EditText editTextDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
-
         final String[] participantsIds = contentProvider.getParticipantsIds();
-
         final List<Long> participants = new ArrayList<>();
 
 
         builder.setView(dialogsView)
-                .setTitle(R.string.dialog_title)
+                .setTitle(R.string.dialog_add_questions_title)
                 .setMultiChoiceItems(participantsIds, null,
                         new DialogInterface.OnMultiChoiceClickListener() {
                             public void onClick(DialogInterface dialog, int item, boolean isChecked) {
