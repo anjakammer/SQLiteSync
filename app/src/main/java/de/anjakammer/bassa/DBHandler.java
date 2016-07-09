@@ -5,19 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Path;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Arrays;
-import java.util.List;
 
 import de.anjakammer.bassa.SQLiteSync.SQLiteSyncHelper;
 
@@ -29,17 +19,17 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final int DB_VERSION = 5;
     public static final boolean IS_MASTER = true;
 
-    public static final String TABLE_QUESTIONNAIRE = "Questionnaire";
+    public static final String TABLE_QUESTIONS = "Questions";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_DESCRIPTION = "question";
     public static final String COLUMN_TITLE = "title";
-    public static final String COLUMN_ISDELETED = "isDeleted";
+    public static final String COLUMN_IS_DELETED = "isDeleted";
 
     public static final String TABLE_ANSWERS = "Answers";
     public static final String COLUMN_A_ID = "_id";
     public static final String COLUMN_A_QUESTION_ID = "question_id";
     public static final String COLUMN_A_DESCRIPTION = "answer";
-    public static final String COLUMN_A_PARTICIPANT = "participant";
+    public static final String COLUMN_A_PARTICIPANT_ID = "participant_id";
 
     public static final String TABLE_PARTICIPANTS = "Participants";
     public static final String COLUMN_P_ID = "_id";
@@ -55,7 +45,7 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String[] ANSWER_COLUMNS = {
             COLUMN_A_ID,
             COLUMN_A_DESCRIPTION,
-            COLUMN_A_PARTICIPANT,
+            COLUMN_A_PARTICIPANT_ID,
             COLUMN_A_QUESTION_ID
     };
 
@@ -65,20 +55,19 @@ public class DBHandler extends SQLiteOpenHelper{
             COLUMN_P_NAME
     };
 
-
     public static final String QUESTIONS_CREATE =
-            "CREATE TABLE " + TABLE_QUESTIONNAIRE +
+            "CREATE TABLE " + TABLE_QUESTIONS +
                     "( " + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
                     COLUMN_TITLE + " TEXT NOT NULL, " +
-                    COLUMN_ISDELETED + " BOOLEAN NOT NULL DEFAULT 0 );";
+                    COLUMN_IS_DELETED + " BOOLEAN NOT NULL DEFAULT 0 );";
 
     public static final String ANSWERS_CREATE =
             "CREATE TABLE " + TABLE_ANSWERS +
                     "( " + COLUMN_A_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_A_QUESTION_ID + " INTEGER, " +
                     COLUMN_A_DESCRIPTION + " TEXT NOT NULL, " +
-                    COLUMN_A_PARTICIPANT + " INTEGER NOT NULL );";
+                    COLUMN_A_PARTICIPANT_ID + " INTEGER NOT NULL );";
 
     public static final String PARTICIPANTS_CREATE =
             "CREATE TABLE " + TABLE_PARTICIPANTS +
@@ -86,7 +75,7 @@ public class DBHandler extends SQLiteOpenHelper{
                     COLUMN_P_ADDRESS + " TEXT NOT NULL, " +
                     COLUMN_P_NAME + " TEXT NOT NULL );";
 
-    public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONNAIRE;
+    public static final String QUESTIONS_DROP = "DROP TABLE IF EXISTS " + TABLE_QUESTIONS;
     public static final String ANSWERS_DROP = "DROP TABLE IF EXISTS " + TABLE_ANSWERS;
     public static final String PARTICIPANTS_DROP = "DROP TABLE IF EXISTS " + TABLE_PARTICIPANTS;
 
@@ -119,7 +108,7 @@ public class DBHandler extends SQLiteOpenHelper{
         }
         try {
             db.execSQL(QUESTIONS_CREATE);
-            this.SyncDBHelper.makeTableSyncable(TABLE_QUESTIONNAIRE);
+            this.SyncDBHelper.makeTableSyncable(TABLE_QUESTIONS);
 
             db.execSQL(ANSWERS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_ANSWERS);

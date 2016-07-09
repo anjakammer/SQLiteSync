@@ -1,6 +1,6 @@
 package de.anjakammer.bassa;
 
-import android.content.ContentValues;
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 
 import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Participant;
 import de.anjakammer.bassa.model.Question;
 
 public class MainActivity extends AppCompatActivity {
@@ -100,6 +99,15 @@ public class MainActivity extends AppCompatActivity {
         mAnswersListView.setAdapter(AnswersArrayAdapter);
     }
 
+    private void setmAnswersListView(Question question){
+        List<Answer> AnswerList = question.getAnswers();
+        ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
+
+        adapter.clear();
+        adapter.addAll(AnswerList);
+        adapter.notifyDataSetChanged();
+    }
+
     private void initializeQuestionsListView() {
 
         List<Question> emptyListForInitialization = new ArrayList<>();
@@ -122,15 +130,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setmAnswersListView(Question question){
-        List<Answer> AnswerList = question.getAnswers();
-        ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
-
-        adapter.clear();
-        adapter.addAll(AnswerList);
-        adapter.notifyDataSetChanged();
-    }
-
     private void initializeDeletedQuestionsListView() {
         List<Question> emptyListForInitialization = new ArrayList<>();
         mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_questions);
@@ -149,17 +148,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         mDeletedQuestionsListView.setAdapter(DeletedQuestionArrayAdapter);
-    }
-
-    private void activateAddButton() {
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog AddQuestionDialog = createAddQuestionDialog();
-                AddQuestionDialog.show();
-            }
-        });
     }
 
     private void initializeContextualActionBar() {
@@ -240,6 +228,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 selCount = 0;
+            }
+        });
+    }
+
+    private void activateAddButton() {
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog AddQuestionDialog = createAddQuestionDialog();
+                AddQuestionDialog.show();
             }
         });
     }

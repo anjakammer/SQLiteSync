@@ -3,14 +3,15 @@ package de.anjakammer.bassa.model;
 public class Answer {
 
     private String description;
-    private long participant;
+    private long participantId;
     private long id;
     private long question_id;
 
+    public static final String DEFAULT_ANSWER = "not answered yet";
 
-    public Answer(String description, long participant, long id,  long question_id) {
+    public Answer(String description, long participantId, long id,  long question_id) {
         this.description = description;
-        this.participant = participant;
+        this.participantId = participantId;
         this.id = id;
         this.question_id = question_id;
     }
@@ -23,12 +24,12 @@ public class Answer {
         this.description = description;
     }
 
-    public long getParticipant() {
-        return participant;
+    public long getParticipantId() {
+        return participantId;
     }
 
-    public void setParticipant(long participant) {
-        this.participant = participant;
+    public void setParticipantId(long participant) {
+        this.participantId = participant;
     }
 
     public long getId() {
@@ -49,6 +50,6 @@ public class Answer {
 
     @Override
     public String toString() {
-        return participant + ": " + description;
+        return participantId + ": " + (description.equals("") ? DEFAULT_ANSWER : description );
     }
 }
