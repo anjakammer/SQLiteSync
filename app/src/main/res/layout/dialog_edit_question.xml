@@ -17,7 +17,6 @@
             android:text="@string/dialog_title_title"
             android:layout_weight="1"
             android:gravity="end"
-            android:layout_marginRight="5sp"
             android:layout_marginEnd="5sp" />
         <EditText
             android:layout_width="0dp"
@@ -36,7 +35,6 @@
             android:text="@string/dialog_title_question"
             android:layout_weight="1"
             android:gravity="bottom|end"
-            android:layout_marginRight="5sp"
             android:layout_marginEnd="5sp" />
         <EditText
             android:layout_width="0dp"

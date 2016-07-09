@@ -20,6 +20,8 @@
 
     // Dialog
     <string name="dialog_title">Change Question</string>
+    <string name="dialog_add_questions_title">Add Question</string>
+    <string name="dialog_select_participant">Select Participant</string>
     <string name="dialog_title_title">Title:</string>
     <string name="dialog_title_question">Question:</string>
     <string name="dialog_button_positive">Done</string>

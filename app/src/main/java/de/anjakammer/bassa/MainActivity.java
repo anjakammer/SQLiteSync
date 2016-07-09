@@ -1,5 +1,6 @@
 package de.anjakammer.bassa;
 
+
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
@@ -28,7 +29,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 
 import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Participant;
 import de.anjakammer.bassa.model.Question;
 
 public class MainActivity extends AppCompatActivity {
@@ -99,6 +99,15 @@ public class MainActivity extends AppCompatActivity {
         mAnswersListView.setAdapter(AnswersArrayAdapter);
     }
 
+    private void setmAnswersListView(Question question){
+        List<Answer> AnswerList = question.getAnswers();
+        ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
+
+        adapter.clear();
+        adapter.addAll(AnswerList);
+        adapter.notifyDataSetChanged();
+    }
+
     private void initializeQuestionsListView() {
 
         List<Question> emptyListForInitialization = new ArrayList<>();
@@ -116,13 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 TextView QuestionPlaceholder = (TextView) findViewById(R.id.question);
                 String str = question.getTitle() + ": \n" + question.getDescription();
                 QuestionPlaceholder.setText(str);
-
-                List<Answer> AnswerList = question.getAnswers();
-                ArrayAdapter<Answer> adapter = (ArrayAdapter<Answer>) mAnswersListView.getAdapter();
-
-                adapter.clear();
-                adapter.addAll(AnswerList);
-                adapter.notifyDataSetChanged();
+                setmAnswersListView(question);
             }
         });
     }
@@ -145,17 +148,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         mDeletedQuestionsListView.setAdapter(DeletedQuestionArrayAdapter);
-    }
-
-    private void activateAddButton() {
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog AddQuestionDialog = createAddQuestionDialog();
-                AddQuestionDialog.show();
-            }
-        });
     }
 
     private void initializeContextualActionBar() {
@@ -205,9 +197,8 @@ public class MainActivity extends AppCompatActivity {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
                                 int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question Question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
-                                Log.d(LOG_TAG, "Position im ListView: " + postitionInListView + " Inhalt: " + Question.toString());
-                                contentProvider.deleteQuestion(Question);
+                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
+                                contentProvider.deleteQuestion(question);
                             }
                         }
                         showAllListEntries();
@@ -219,10 +210,9 @@ public class MainActivity extends AppCompatActivity {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
                                 int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question Question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
-                                Log.d(LOG_TAG, "Position im ListView: " + postitionInListView + " Inhalt: " + Question.toString());
+                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
 
-                                AlertDialog editQuestionDialog = createEditQuestionDialog(Question);
+                                AlertDialog editQuestionDialog = createEditQuestionDialog(question);
                                 editQuestionDialog.show();
                             }
                         }
@@ -238,6 +228,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 selCount = 0;
+            }
+        });
+    }
+
+    private void activateAddButton() {
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog AddQuestionDialog = createAddQuestionDialog();
+                AddQuestionDialog.show();
             }
         });
     }
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private AlertDialog createEditQuestionDialog(final Question Question) {
+    private AlertDialog createEditQuestionDialog(final Question question) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -267,10 +268,10 @@ public class MainActivity extends AppCompatActivity {
         View dialogsView = inflater.inflate(R.layout.dialog_edit_question, null);
 
         final EditText editTextNewTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
-        editTextNewTitle.setText(Question.getTitle());
+        editTextNewTitle.setText(question.getTitle());
 
         final EditText editTextNewDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
-        editTextNewDescription.setText(Question.getDescription());
+        editTextNewDescription.setText(question.getDescription());
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_title)
@@ -281,11 +282,10 @@ public class MainActivity extends AppCompatActivity {
                         String description = editTextNewDescription.getText().toString();
 
                         if ((TextUtils.isEmpty(title)) || (TextUtils.isEmpty(description))) {
-                            Log.d(LOG_TAG, "Ein Eintrag enthielt keinen Text. Daher Abbruch der Änderung.");
                             return;
                         }
 
-                        Question updatedQuestion = contentProvider.updateQuestion(Question.getId(), description, title);
+                        contentProvider.updateQuestion(question.getId(), description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }
@@ -306,27 +306,10 @@ public class MainActivity extends AppCompatActivity {
         View dialogsView = inflater.inflate(R.layout.dialog_edit_question, null);
 
         final EditText editTextTitle = (EditText) dialogsView.findViewById(R.id.editText_new_title);
-
         final EditText editTextDescription = (EditText) dialogsView.findViewById(R.id.editText_new_question);
 
-        final String[] participantsIds = contentProvider.getParticipantsIds();
-
-        final List<Long> participants = new ArrayList<>();
-
-
         builder.setView(dialogsView)
-                .setTitle(R.string.dialog_title)
-                .setMultiChoiceItems(participantsIds, null,
-                        new DialogInterface.OnMultiChoiceClickListener() {
-                            public void onClick(DialogInterface dialog, int item, boolean isChecked) {
-                                if (isChecked) {
-                                    participants.add(Long.valueOf(participantsIds[item]));
-
-                                } else {
-                                    participants.remove(Long.valueOf(participantsIds[item]));
-                                }
-                            }
-                        })
+                .setTitle(R.string.dialog_add_questions_title)
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -341,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                             editTextDescription.setError(getString(R.string.editText_errorMessage));
                             return;
                         }
-                        contentProvider.createQuestion(description, title, participants);
+                        contentProvider.createQuestion(description, title);
                         showAllListEntries();
                         dialog.dismiss();
                     }
