@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text=""
-        android:id="@+id/question"
+        android:id="@+id/item"
         android:layout_marginTop="16dp" />
 
     <ListView

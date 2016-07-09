@@ -16,6 +16,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ParticipantsActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT_OR_EDIT" />
+
+                <category android:name="android.intent.category.TAB" />
+            </intent-filter>
+        </activity>
+
 
     </application>
 

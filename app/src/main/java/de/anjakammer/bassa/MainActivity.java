@@ -1,10 +1,10 @@
 package de.anjakammer.bassa;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -111,7 +111,9 @@ public class MainActivity extends AppCompatActivity {
     private void initializeQuestionsListView() {
 
         List<Question> emptyListForInitialization = new ArrayList<>();
-        mQuestionsListView = (ListView) findViewById(R.id.listview_questions);
+        mQuestionsListView = (ListView) findViewById(R.id.listview_items);
+        TextView mQuestionsHeadline = (TextView) findViewById(R.id.headline);
+        mQuestionsHeadline.setText(R.string.headline_questions);
         ArrayAdapter<Question> QuestionArrayAdapter = new ArrayAdapter<Question>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
@@ -122,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Question question = (Question) adapterView.getItemAtPosition(position);
-                TextView QuestionPlaceholder = (TextView) findViewById(R.id.question);
+                TextView QuestionPlaceholder = (TextView) findViewById(R.id.item);
                 String str = question.getTitle() + ": \n" + question.getDescription();
                 QuestionPlaceholder.setText(str);
                 setmAnswersListView(question);
@@ -132,7 +134,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeDeletedQuestionsListView() {
         List<Question> emptyListForInitialization = new ArrayList<>();
-        mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_questions);
+        mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_items);
+        TextView mDeletedQuestionsHeadline = (TextView) findViewById(R.id.headline_deleted);
+        mDeletedQuestionsHeadline.setText(R.string.headline_deleted_questions);
         ArrayAdapter<Question> DeletedQuestionArrayAdapter = new ArrayAdapter<Question>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
@@ -151,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeContextualActionBar() {
-        final ListView QuestionsListView = (ListView) findViewById(R.id.listview_questions);
+        final ListView QuestionsListView = (ListView) findViewById(R.id.listview_items);
         QuestionsListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         QuestionsListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
             int selCount = 0;
@@ -168,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
                 mode.invalidate();
             }
 
-            // In dieser Callback-Methode legen wir die CAB-Menüeinträge an
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                 getMenuInflater().inflate(R.menu.menu_contextual_action_bar, menu);
@@ -254,6 +257,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
+            Intent startActivity = new Intent(getApplicationContext(),
+                    ParticipantsActivity.class);
+            startActivity(startActivity);
             return true;
         }
 

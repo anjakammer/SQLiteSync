@@ -8,6 +8,7 @@
     <string name="button_add_question">add this question</string>
     <string name="headline_questions">Questions</string>
     <string name="headline_answers">Answers</string>
+    <string name="headline_participants">Participants</string>
     <string name="headline_deleted_questions">Deleted Questions</string>
 
     // Error Messages

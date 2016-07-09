@@ -1,6 +1,7 @@
 package de.anjakammer.bassa;
 
 import android.content.Context;
+import android.provider.Telephony;
 import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -157,13 +158,12 @@ public class ContentProvider {
 
     private Participant cursorToParticipant(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_P_ID);
-        int idAddress = cursor.getColumnIndex(DBHandler.COLUMN_P_ADDRESS);
         int idName = cursor.getColumnIndex(DBHandler.COLUMN_P_NAME);
+        int idAddress = cursor.getColumnIndex(DBHandler.COLUMN_P_ADDRESS);
 
         String address = cursor.getString(idAddress);
         String name = cursor.getString(idName);
         long id = cursor.getLong(idIndex);
-
         return new Participant(address, name, id);
     }
 
@@ -238,6 +238,24 @@ public class ContentProvider {
         return AnswerList;
     }
 
+    public List<Answer> getAnswersOfParticipant(long participantId) {
+        List<Answer> AnswerList = new ArrayList<>();
+
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_ANSWERS,
+                DBHandler.ANSWER_COLUMNS, DBHandler.COLUMN_A_PARTICIPANT_ID + " = ?",
+                new String[] {String.valueOf(participantId)},
+                null, null, null, null);
+        cursor.moveToFirst();
+        Answer answer;
+        while (!cursor.isAfterLast()) {
+            answer = cursorToAnswer(cursor);
+            AnswerList.add(answer);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return AnswerList;
+    }
+
     public List<Question> getAllDeletedQuestions() {
         List<Question> QuestionList = new ArrayList<>();
 
@@ -254,5 +272,23 @@ public class ContentProvider {
         }
         cursor.close();
         return QuestionList;
+    }
+
+    public List<Participant> getAllDeletedParticipants() {
+        List<Participant> ParticipantList = new ArrayList<>();
+
+        Cursor cursor = dbHandler.selectDeleted(false, DBHandler.TABLE_PARTICIPANTS,
+                DBHandler.PARTICIPANTS_COLUMNS, null, null, null, null, null, null);
+
+        cursor.moveToFirst();
+        Participant participant;
+
+        while (!cursor.isAfterLast()) {
+            participant = cursorToParticipant(cursor);
+            ParticipantList.add(participant);
+            cursor.moveToNext();
+        }
+        cursor.close();
+        return ParticipantList;
     }
 }
