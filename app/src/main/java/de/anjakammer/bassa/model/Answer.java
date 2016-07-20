@@ -50,6 +50,6 @@ public class Answer {
 
     @Override
     public String toString() {
-        return participantId + ": " + (description.equals("") ? DEFAULT_ANSWER : description );
+        return "Participant "+participantId + ": " + (description.equals("") ? DEFAULT_ANSWER : description );
     }
 }

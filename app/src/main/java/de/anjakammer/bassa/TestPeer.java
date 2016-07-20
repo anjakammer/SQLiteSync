@@ -2,6 +2,7 @@ package de.anjakammer.bassa;
 
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -14,12 +15,30 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Scanner;
+
 
 public class TestPeer {
     public static final String LOG_TAG = TestPeer.class.getSimpleName();
 
+    public TestPeer(DBHandler dbHandler){
+        ContentValues valuesA = new ContentValues();
+        valuesA.put(DBHandler.COLUMN_P_ID, 1);
+        valuesA.put(DBHandler.COLUMN_P_NAME, "Peer1");
+        valuesA.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:1");
+        dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesA);
 
+        ContentValues valuesB = new ContentValues();
+        valuesB.put(DBHandler.COLUMN_P_ID, 2);
+        valuesB.put(DBHandler.COLUMN_P_NAME, "Peer2");
+        valuesB.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:2");
+        dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesB);
+
+        ContentValues valuesC = new ContentValues();
+        valuesC.put(DBHandler.COLUMN_P_ID, 3);
+        valuesC.put(DBHandler.COLUMN_P_NAME, "Peer3");
+        valuesC.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:3");
+        dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesC);
+    }
 
     public JSONObject getPeerDelta(Context context){
         String lastSyncTime = "1437748127175";
@@ -36,7 +55,6 @@ public class TestPeer {
 
         return delta;
     }
-
 
     public String getDataFromFile(Context context, String path) {
         InputStream input;
@@ -56,15 +74,5 @@ public class TestPeer {
         }
         return new String(buffer);
     }
-//    // TODO remove this testing method
-//    private void insertFakeAnswers(long question_id){
-//        try{
-//            createAnswer("", "1", question_id);
-//            createAnswer("", "2", question_id);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            Log.e(LOG_TAG, "createAnswer failed: " + e.getMessage());
-//        }
-//    }
 
 }

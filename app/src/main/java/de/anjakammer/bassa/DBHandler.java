@@ -92,7 +92,7 @@ public class DBHandler extends SQLiteOpenHelper{
 
         try {
             // TODO rerender view after updating the DB !
-            if(SyncDBHelper.updateDB(new TestPeer().getPeerDelta(context))){
+            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta(context))){
                 Log.d(LOG_TAG, "successfully DB update");
             }
 
@@ -115,16 +115,7 @@ public class DBHandler extends SQLiteOpenHelper{
 
             db.execSQL(PARTICIPANTS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_PARTICIPANTS);
-            // TODO remove this test code
-            ContentValues valuesA = new ContentValues();
-            valuesA.put(COLUMN_P_NAME, "Peer1");
-            valuesA.put(COLUMN_P_ADDRESS, "1");
-            insert(TABLE_PARTICIPANTS,valuesA);
-            ContentValues valuesB = new ContentValues();
-            valuesB.put(COLUMN_P_NAME, "Peer2");
-            valuesB.put(COLUMN_P_ADDRESS, "2");
-            insert(TABLE_PARTICIPANTS,valuesB);
-            // TODO remove this test code
+
 
         }
         catch (Exception e) {

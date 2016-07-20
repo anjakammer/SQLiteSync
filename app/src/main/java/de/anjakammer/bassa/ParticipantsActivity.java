@@ -17,7 +17,6 @@ import java.util.List;
 
 import de.anjakammer.bassa.model.Answer;
 import de.anjakammer.bassa.model.Participant;
-import de.anjakammer.bassa.model.Question;
 
 public class ParticipantsActivity extends AppCompatActivity {
 
@@ -95,7 +94,7 @@ public class ParticipantsActivity extends AppCompatActivity {
         List<Participant> emptyListForInitialization = new ArrayList<>();
         mDeletedParticipantsListView = (ListView) findViewById(R.id.listview_deleted_items);
         TextView mDeletedParticipantsHeadline = (TextView) findViewById(R.id.headline_deleted);
-        mDeletedParticipantsHeadline.setText(R.string.headline_deleted_questions);
+        mDeletedParticipantsHeadline.setText(R.string.headline_deleted_participants);
         ArrayAdapter<Participant> DeletedParticipantsArrayAdapter = new ArrayAdapter<Participant>(
                 this,
                 android.R.layout.simple_list_item_activated_1,
