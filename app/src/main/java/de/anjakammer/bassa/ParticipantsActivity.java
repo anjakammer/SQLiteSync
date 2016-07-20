@@ -39,6 +39,7 @@ public class ParticipantsActivity extends AppCompatActivity {
 
         initializeParticipantsListView();
         initializeAnswersListView();
+        initializeDeletedParticipantsListView();
 
     }
 
@@ -51,8 +52,8 @@ public class ParticipantsActivity extends AppCompatActivity {
     }
 
     private void showAllListEntries() {
-        List<Question> ParticipantsList = contentProvider.getAllQuestions();
-        ArrayAdapter<Question> adapter = (ArrayAdapter<Question>) mParticipantsListView.getAdapter();
+        List<Participant> ParticipantsList = contentProvider.getAllParticipants();
+        ArrayAdapter<Participant> adapter = (ArrayAdapter<Participant>) mParticipantsListView.getAdapter();
 
         adapter.clear();
         adapter.addAll(ParticipantsList);
@@ -90,7 +91,7 @@ public class ParticipantsActivity extends AppCompatActivity {
             }
         });
     }
-    private void initializeDeletedQuestionsListView() {
+    private void initializeDeletedParticipantsListView() {
         List<Participant> emptyListForInitialization = new ArrayList<>();
         mDeletedParticipantsListView = (ListView) findViewById(R.id.listview_deleted_items);
         TextView mDeletedParticipantsHeadline = (TextView) findViewById(R.id.headline_deleted);

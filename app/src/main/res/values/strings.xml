@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Bassa</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="action_participants">Participants</string>
 
     <string name="editText_hint_title">Title</string>
     <string name="editText_hint_question">Question</string>
