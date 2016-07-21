@@ -34,7 +34,9 @@ public class SQLiteSyncHelper {
     private static final String KEY_IS_MASTER = "isMaster";
     private static final String KEY_DB_ID = "DB_ID";
     private static final String KEY_TABLES = "tables";
+    private static final String KEY_MESSAGE = "message";
     private static final String KEY_LASTSYNCTIME = "lastSyncTime";
+    private static final String VALUE_DELTA = "DELTA";
     private static final String COLUMN_IS_DELETED = "isDeleted";
     private static final String COLUMN_TIMESTAMP = "timestamp";
 
@@ -158,15 +160,15 @@ public class SQLiteSyncHelper {
     }
 
 
-    public boolean updateDB(JSONObject peer) throws JSONException {
+    public boolean updateDB(JSONObject delta) throws JSONException {
         boolean updated;
 
         Timestamp time =  new Timestamp(System.currentTimeMillis());
         Log.d(LOG_TAG, "Started updating DB at" + time.toString() );
 
-        if (peer.getString(KEY_DB_ID).equals(this.dbID)) {
+        if (delta.getString(KEY_DB_ID).equals(this.dbID)) {
 
-            JSONArray tables = peer.getJSONArray(KEY_TABLES);
+            JSONArray tables = delta.getJSONArray(KEY_TABLES);
 
 
             // Iterates through all tables
@@ -270,6 +272,7 @@ public class SQLiteSyncHelper {
     private JSONObject prepareDeltaObject(String lastSyncTime, String dbId) {
         JSONObject delta = new JSONObject();
         try {
+            delta.put(KEY_MESSAGE, VALUE_DELTA);
             delta.put(KEY_DB_ID, dbId);
             delta.put(KEY_IS_MASTER, String.valueOf(this.isMaster));
             delta.put(KEY_LASTSYNCTIME, lastSyncTime);
