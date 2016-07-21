@@ -1,7 +1,9 @@
 package de.anjakammer.bassa;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +30,8 @@ import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 
+import net.sharksystem.android.peer.SharkServiceController;
+
 import de.anjakammer.bassa.model.Answer;
 import de.anjakammer.bassa.model.Question;
 
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mAnswersListView;
     private ListView mDeletedQuestionsListView;
     private FloatingActionButton fab;
+    private WifiManager mWifiManager;
 
 
     @Override
@@ -50,11 +55,18 @@ public class MainActivity extends AppCompatActivity {
         ListFragment listFragment = new ListFragment();
 
         contentProvider = new ContentProvider(this);
+
         initializeQuestionsListView();
         initializeDeletedQuestionsListView();
         activateAddButton();
         initializeContextualActionBar();
         initializeAnswersListView();
+
+        mWifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+
+        if(!mWifiManager.isWifiEnabled()){
+            // TODO must be enabled for sync
+        }
     }
 
     @Override

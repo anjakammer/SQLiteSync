@@ -160,13 +160,14 @@ public class SQLiteSyncHelper {
     }
 
 
-    public boolean updateDB(JSONObject delta) throws JSONException {
+    public boolean updateDB(JSONObject delta) throws JSONException, SyncableDatabaseException {
         boolean updated;
 
         Timestamp time =  new Timestamp(System.currentTimeMillis());
         Log.d(LOG_TAG, "Started updating DB at" + time.toString() );
 
-        if (delta.getString(KEY_DB_ID).equals(this.dbID)) {
+        if (delta.getString(KEY_DB_ID).equals(this.dbID) &&
+                delta.getString(KEY_MESSAGE).equals(VALUE_DELTA)) {
 
             JSONArray tables = delta.getJSONArray(KEY_TABLES);
 
@@ -200,6 +201,8 @@ public class SQLiteSyncHelper {
                     }
                 }
             }
+        }else{
+            throw new SyncableDatabaseException("The provided data are no Database-delta");
         }
         Timestamp endtime =  new Timestamp(System.currentTimeMillis());
         Log.d(LOG_TAG, "Ended updating DB at" + endtime.toString() );

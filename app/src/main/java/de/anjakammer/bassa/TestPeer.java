@@ -44,6 +44,7 @@ public class TestPeer {
         String lastSyncTime = "1437748127175";
         JSONObject delta = new JSONObject();
         try {
+            delta.put("message","DELTA");
             delta.put("lastSyncTime",lastSyncTime);
             delta.put("DB_ID","QuestionnaireGroup1");
             delta.put("isMaster","false");

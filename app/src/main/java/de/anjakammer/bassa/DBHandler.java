@@ -9,6 +9,7 @@ import android.util.Log;
 
 import org.json.JSONException;
 
+import de.anjakammer.bassa.Exceptions.SyncableDatabaseException;
 import de.anjakammer.bassa.SQLiteSync.SQLiteSyncHelper;
 
 public class DBHandler extends SQLiteOpenHelper{
@@ -98,6 +99,9 @@ public class DBHandler extends SQLiteOpenHelper{
 
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (SyncableDatabaseException e) {
+            e.printStackTrace();
+            Log.d(LOG_TAG, "unable to update DB " + e.getMessage());
         }
     }
 
