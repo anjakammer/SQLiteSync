@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import net.sharksystem.android.Application;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +21,7 @@ import java.io.InputStream;
 
 public class TestPeer {
     public static final String LOG_TAG = TestPeer.class.getSimpleName();
+    private Context context;
 
     public TestPeer(DBHandler dbHandler){
         ContentValues valuesA = new ContentValues();
@@ -40,7 +43,8 @@ public class TestPeer {
         dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesC);
     }
 
-    public JSONObject getPeerDelta(Context context){
+    public JSONObject getPeerDelta(){
+        context = Application.getAppContext();
         String lastSyncTime = "1437748127175";
         JSONObject delta = new JSONObject();
         try {

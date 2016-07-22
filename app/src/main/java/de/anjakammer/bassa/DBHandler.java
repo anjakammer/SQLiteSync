@@ -93,7 +93,7 @@ public class DBHandler extends SQLiteOpenHelper{
 
         try {
             // TODO rerender view after updating the DB !
-            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta(context))){
+            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta())){
                 Log.d(LOG_TAG, "successfully DB update");
             }
 
