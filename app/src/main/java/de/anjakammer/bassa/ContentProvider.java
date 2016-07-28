@@ -1,7 +1,6 @@
 package de.anjakammer.bassa;
 
 import android.content.Context;
-import android.provider.Telephony;
 import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -9,9 +8,9 @@ import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Participant;
-import de.anjakammer.bassa.model.Question;
+import de.anjakammer.bassa.models.Answer;
+import de.anjakammer.bassa.models.Participant;
+import de.anjakammer.bassa.models.Question;
 
 
 public class ContentProvider {

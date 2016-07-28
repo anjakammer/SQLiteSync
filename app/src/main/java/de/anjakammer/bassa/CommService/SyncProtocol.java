@@ -1,20 +1,18 @@
-package de.anjakammer.bassa.CommService;
+package de.anjakammer.bassa.commService;
 
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Switch;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SyncProtocol {
+import de.anjakammer.sqlitesync.SyncProtocolInterface;
+
+public class SyncProtocol implements SyncProtocolInterface{
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
     private static final String KEY_DB_ID = "DB_ID";
     private static final String KEY_SYNCREQUEST = "syncRequest";

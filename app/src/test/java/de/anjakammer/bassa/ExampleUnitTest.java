@@ -5,8 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
 import java.util.List;
-import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Question;
+
+import de.anjakammer.bassa.activities.MainActivity;
+import de.anjakammer.bassa.models.Answer;
+import de.anjakammer.bassa.models.Question;
 
 /**
  * To work on unit tests, switch the Test Artifact in the Build Variants view.

@@ -1,4 +1,4 @@
-package de.anjakammer.bassa.Exceptions;
+package de.anjakammer.sqlitesync.exceptions;
 
 
     public class SyncableDatabaseException extends Exception

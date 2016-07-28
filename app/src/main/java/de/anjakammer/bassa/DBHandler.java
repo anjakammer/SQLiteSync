@@ -7,10 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import org.json.JSONException;
-
-import de.anjakammer.bassa.Exceptions.SyncableDatabaseException;
-import de.anjakammer.bassa.SQLiteSync.SQLiteSyncHelper;
+import de.anjakammer.sqlitesync.SQLiteSyncHelper;
 
 public class DBHandler extends SQLiteOpenHelper{
 

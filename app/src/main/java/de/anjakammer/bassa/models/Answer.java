@@ -1,4 +1,4 @@
-package de.anjakammer.bassa.model;
+package de.anjakammer.bassa.models;
 
 public class Answer {
 

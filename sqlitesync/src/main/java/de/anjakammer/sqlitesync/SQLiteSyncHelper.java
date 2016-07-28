@@ -1,4 +1,4 @@
-package de.anjakammer.bassa.SQLiteSync;
+package de.anjakammer.sqlitesync;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import java.util.List;
-import de.anjakammer.bassa.Exceptions.SyncableDatabaseException;
+import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 public class SQLiteSyncHelper {
 

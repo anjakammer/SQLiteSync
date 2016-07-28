@@ -1,4 +1,4 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.fragments;
 
 /**
  * Created by Anja on 08.07.2016.

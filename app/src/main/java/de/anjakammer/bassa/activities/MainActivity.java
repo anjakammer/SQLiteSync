@@ -1,7 +1,6 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.activities;
 
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -30,10 +29,12 @@ import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 
-import net.sharksystem.android.peer.SharkServiceController;
-
-import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Question;
+import de.anjakammer.bassa.ContentProvider;
+import de.anjakammer.bassa.fragments.DetailFragment;
+import de.anjakammer.bassa.fragments.ListFragment;
+import de.anjakammer.bassa.R;
+import de.anjakammer.bassa.models.Answer;
+import de.anjakammer.bassa.models.Question;
 
 public class MainActivity extends AppCompatActivity {
 

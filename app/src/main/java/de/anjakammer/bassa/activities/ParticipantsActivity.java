@@ -1,4 +1,4 @@
-package de.anjakammer.bassa;
+package de.anjakammer.bassa.activities;
 
 
 import android.graphics.Color;
@@ -15,8 +15,12 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.anjakammer.bassa.model.Answer;
-import de.anjakammer.bassa.model.Participant;
+import de.anjakammer.bassa.ContentProvider;
+import de.anjakammer.bassa.fragments.DetailFragment;
+import de.anjakammer.bassa.fragments.ListFragment;
+import de.anjakammer.bassa.R;
+import de.anjakammer.bassa.models.Answer;
+import de.anjakammer.bassa.models.Participant;
 
 public class ParticipantsActivity extends AppCompatActivity {
 

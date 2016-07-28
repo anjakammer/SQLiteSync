@@ -1,4 +1,4 @@
-package de.anjakammer.bassa.CommService;
+package de.anjakammer.bassa.commService;
 
 
 
