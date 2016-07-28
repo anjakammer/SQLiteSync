@@ -34,7 +34,9 @@ public class SyncActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_view);
+        participantsList = new ArrayList<>();
         initializeParticipantsListView();
+        showAllListEntries();
 
         Context mContext = getApplicationContext();
         contentProvider = new ContentProvider(mContext);
@@ -78,7 +80,10 @@ public class SyncActivity extends AppCompatActivity {
 
     private void showAllListEntries() {
         ArrayAdapter<Participant> adapter = (ArrayAdapter<Participant>) mParticipantsListView.getAdapter();
+        // TODO remove this test-injection
         participantsList.add(new Participant("address","name", 39));
+        // TODO remove this test-injection
+
         adapter.clear();
         adapter.addAll(participantsList);
         adapter.notifyDataSetChanged();
