@@ -8,5 +8,10 @@
         android:icon="@drawable/ic_person_white_48dp"
         android:title="@string/action_participants"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_sync"
+        android:icon="@drawable/ic_cached_white_48dp"
+        android:title="@string/action_sync"
+        app:showAsAction="ifRoom"/>
 
 </menu>

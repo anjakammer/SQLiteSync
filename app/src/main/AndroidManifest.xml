@@ -24,6 +24,15 @@
                 <category android:name="android.intent.category.TAB" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SyncActivity"
+            android:label="@string/action_sync"
+            android:parentActivityName="de.anjakammer.bassa.MainActivity" >>
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT_OR_EDIT" />
+                <category android:name="android.intent.category.TAB" />
+            </intent-filter>
+        </activity>
 
 
     </application>

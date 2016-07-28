@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mDeletedQuestionsListView;
     private FloatingActionButton fab;
     private WifiManager mWifiManager;
+    private Intent intent;
 
 
     @Override
@@ -62,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         initializeContextualActionBar();
         initializeAnswersListView();
 
-        mWifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-
-        if(!mWifiManager.isWifiEnabled()){
-            // TODO must be enabled for sync
-        }
+//        mWifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+//
+//        if(!mWifiManager.isWifiEnabled()){
+//            // TODO must be enabled for sync
+//        }
     }
 
     @Override
@@ -271,6 +272,12 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_participants) {
             Intent startActivity = new Intent(getApplicationContext(),
                     ParticipantsActivity.class);
+            startActivity(startActivity);
+            return true;
+        }
+        if (id == R.id.action_sync) {
+            Intent startActivity = new Intent(getApplicationContext(),
+                    SyncActivity.class);
             startActivity(startActivity);
             return true;
         }

@@ -3,39 +3,56 @@ package de.anjakammer.bassa.CommService;
 
 
 import android.content.Context;
-import android.net.wifi.WifiManager;
-import android.support.v7.app.AppCompatActivity;
 
-import net.sharksystem.android.Application;
 import net.sharksystem.android.peer.SharkServiceController;
+import net.sharksystem.android.protocols.wifidirect_obsolete.WifiDirectPeer;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 
 /**
- * Implements Shark Knowledge Port used of SyncProtocol
+ * used of SyncProtocol
  */
-public class DataPort extends AppCompatActivity {
-    private Context context;
+public class DataPort{
+
     private SharkServiceController mServiceController;
-    private WifiManager mWifiManager;
+    private String interest;
+    public List<String> data;
 
-    private String mName = "name";
-    private String mInterest = "interest";
-
-    public DataPort(){
-
-        context = Application.getAppContext();
-        //mBroadCastAdapter = new WifiDirectBroadcastAdapter(context);
-        mServiceController = SharkServiceController.getInstance(this);
-        mServiceController.setOffer(mName, mInterest);
+    public DataPort(String name, String interest, Context context){
+        this.interest = interest;
+        mServiceController = SharkServiceController.getInstance(context);
+        mServiceController.setOffer(name, interest);
         mServiceController.startShark();
-		// https://github.com/SharedKnowledge/SBC/blob/master/app/src/main/java/net/sharksystem/sbc/fragments/BroadcastsFragment.java
     }
 
-    public void sendData(byte[] message){
+    public void sendData(String data){
         // TODO send with ASIP
+        mServiceController.sendBroadcast(data);
     }
 
-    public byte[] getData(){
-        return  "message".getBytes();
+    public List<String> getData(){
+        data = mServiceController.getStringMessages();
+        return  this.data;
     }
 
+    public List<String> getPeers(){
+        CopyOnWriteArrayList<WifiDirectPeer> mPeerList = mServiceController.getPeers();
+        List<String> mPeers = new ArrayList<>();
+
+        long current = System.currentTimeMillis();
+
+        Iterator<WifiDirectPeer> iterator = mPeerList.iterator();
+        while (iterator.hasNext()){
+            WifiDirectPeer peer = iterator.next();
+            if((current - peer.getLastUpdated()) < 1000 * 60
+                    || peer.getmInterest().equals(this.interest)){
+                mPeers.add(peer.getName());
+            }
+        }
+        return mPeers;
+    }
 }

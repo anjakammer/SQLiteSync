@@ -91,18 +91,18 @@ public class DBHandler extends SQLiteOpenHelper{
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
 
-        try {
+//        try {
             // TODO rerender view after updating the DB !
-            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta())){
-                Log.d(LOG_TAG, "successfully DB update");
-            }
+//            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta())){
+//                Log.d(LOG_TAG, "successfully DB update");
+//            }
 
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (SyncableDatabaseException e) {
-            e.printStackTrace();
-            Log.d(LOG_TAG, "unable to update DB " + e.getMessage());
-        }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        } catch (SyncableDatabaseException e) {
+//            e.printStackTrace();
+//            Log.d(LOG_TAG, "unable to update DB " + e.getMessage());
+//        }
     }
 
     @Override

@@ -28,6 +28,9 @@ public class ContentProvider {
         dbHandler.getWritableDatabase();
     }
 
+    public String getDbId(){
+        return DBHandler.DB_ID;
+    }
     public Answer createAnswer(String description, long participantId, long question_id) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_A_DESCRIPTION, description);
@@ -103,7 +106,7 @@ public class ContentProvider {
 
         while (!answers.isAfterLast()) {
             Long answerId = answers.getLong(answers.getColumnIndex(DBHandler.COLUMN_A_ID));
-                dbHandler.delete(DBHandler.TABLE_ANSWERS,answerId);
+            dbHandler.delete(DBHandler.TABLE_ANSWERS,answerId);
             answers.moveToNext();
         }
         answers.close();
@@ -195,6 +198,26 @@ public class ContentProvider {
             i++;
         }
         return participantsArray;
+    }
+
+    public List<Participant> getParticipantsByName(List<String> names){
+        List<Participant> participantList = new ArrayList<>();
+        for (String name: names) {
+
+            Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
+                    DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_P_NAME + " = ?",
+                    new String[] {name},
+                    null, null, null, null);
+            cursor.moveToFirst();
+            Participant participant;
+            while (!cursor.isAfterLast()) {
+                participant = cursorToParticipant(cursor);
+                participantList.add(participant);
+                cursor.moveToNext();
+            }
+            cursor.close();
+        }
+        return participantList;
     }
 
     public List<Question> getAllQuestions() {

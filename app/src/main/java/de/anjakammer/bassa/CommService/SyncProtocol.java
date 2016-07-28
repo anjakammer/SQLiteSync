@@ -1,6 +1,7 @@
 package de.anjakammer.bassa.CommService;
 
 
+import android.content.Context;
 import android.util.Log;
 import android.widget.Switch;
 
@@ -10,25 +11,27 @@ import org.json.JSONObject;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SyncProtocol {
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
     private static final String KEY_DB_ID = "DB_ID";
+    private static final String KEY_SYNCREQUEST = "syncRequest";
     private static final String KEY_MESSAGE = "message";
-    private static final String VALUE_DELTA = "DELTA";
     private static final String VALUE_OK = "OK";
     private static final String VALUE_CLOSE = "CLOSE";
     private final String DbId;
 
     DataPort dataPort;
 
-    public SyncProtocol(String DbId){
+    public SyncProtocol(String DbId, Context context){
         this.DbId = DbId;
+        this.dataPort = new DataPort(DbId, KEY_SYNCREQUEST, context);
     }
 
     public void syncRequest(){
         // TODO receiver integration not necessary? Broadcast?
-        DataPort dataPort = new DataPort();
         JSONObject request = new JSONObject();
         try {
             request.put(KEY_DB_ID, DbId);
@@ -36,26 +39,32 @@ public class SyncProtocol {
             e.printStackTrace();
             Log.e(LOG_TAG, "JSONObject error for writing syncRequest JSON: " + e.getMessage());
         }
-        byte[] bytes = request.toString().getBytes();
-        dataPort.sendData(bytes);
+
+        dataPort.sendData(request.toString());
+    }
+
+    public List<String> getPeers(){
+        return dataPort.getPeers();
     }
 
     public void sendDelta(JSONObject delta){
-        byte[] bytes = delta.toString().getBytes();
-        dataPort.sendData(bytes);
+        dataPort.sendData(delta.toString());
     }
 
-    public JSONObject receiveResponse() throws JSONException {
-        // TODO polling for messages, timeout for x seconds, using future?
+    public List<JSONObject> receiveResponse() throws JSONException {
+        // TODO polling for messages, using Handler and postDelayed
+        List<JSONObject> responses = new ArrayList<>();
 
-        String string = new String(dataPort.getData(), StandardCharsets.UTF_8);
-        JSONObject response = new JSONObject(string);
+        List<String> data = dataPort.getData();
+        for (String item : data) {
+            JSONObject response = new JSONObject(item);
 
-        if (!response.get(KEY_DB_ID).equals(this.DbId)){
-            return null;    // TODO better solution for this
+            if (response.get(KEY_DB_ID).equals(this.DbId)){
+                responses.add(response);
+            }
         }
 
-        return response;
+        return responses;
     }
 
 
@@ -67,7 +76,7 @@ public class SyncProtocol {
         dataPort.sendData(writeMessage(VALUE_CLOSE));
     }
 
-    private byte[] writeMessage(String messageToSend){
+    private String writeMessage(String messageToSend){
         JSONObject message = new JSONObject();
         try {
             message.put(KEY_MESSAGE, messageToSend);
@@ -76,6 +85,6 @@ public class SyncProtocol {
             e.printStackTrace();
             Log.e(LOG_TAG, "JSONObject error for writing "+messageToSend+"-Message JSON: " + e.getMessage());
         }
-        return message.toString().getBytes();
+        return message.toString();
     }
 }
