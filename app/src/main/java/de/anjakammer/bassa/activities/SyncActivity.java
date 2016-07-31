@@ -31,18 +31,8 @@ public class SyncActivity extends AppCompatActivity {
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
 
+    public SyncActivity(){
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.list_view);
-        participantsList = new ArrayList<>();
-        initializeParticipantsListView();
-        showAllListEntries();
-
-        Context mContext = getApplicationContext();
-        contentProvider = new ContentProvider(mContext);
-        syncProtocol = new SyncProtocol(contentProvider.getDbId(), mContext);
         mThreadHandler = new Handler();
         mThread = new Runnable() {
             @Override
@@ -50,9 +40,26 @@ public class SyncActivity extends AppCompatActivity {
                 // TODO refresh the mParticipantsListView
                 participantsList =
                         contentProvider.getParticipantsByName(syncProtocol.getPeers());
+                showAllListEntries();
                 mThreadHandler.postDelayed(this, 5000);
             }
         };
+    }
+
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.list_view);
+        initializeParticipantsListView();
+
+        participantsList = new ArrayList<>();
+        showAllListEntries();
+        Context mContext = getApplicationContext();
+        contentProvider = new ContentProvider(mContext);
+        syncProtocol = new SyncProtocol(contentProvider.getDbId(), mContext);
+
+        mThreadHandler.post(mThread);
     }
 
     @Override

@@ -49,7 +49,7 @@ public class DataPort{
         while (iterator.hasNext()){
             WifiDirectPeer peer = iterator.next();
             if((current - peer.getLastUpdated()) < 1000 * 60
-                    || peer.getmInterest().equals(this.interest)){
+                    || peer.getmInterest().toString().equals(this.interest)){
                 mPeers.add(peer.getName());
             }
         }
