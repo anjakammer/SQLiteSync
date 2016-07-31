@@ -13,5 +13,10 @@
         android:icon="@drawable/ic_cached_white_48dp"
         android:title="@string/action_sync"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ic_settings_applications_white_48dp"
+        android:title="@string/action_settings"
+        app:showAsAction="always"/>
 
 </menu>

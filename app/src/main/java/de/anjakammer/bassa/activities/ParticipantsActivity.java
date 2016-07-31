@@ -4,6 +4,8 @@ package de.anjakammer.bassa.activities;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +31,7 @@ public class ParticipantsActivity extends AppCompatActivity {
     private ListView mParticipantsListView;
     private ListView mDeletedParticipantsListView;
     private ListView mAnswersListView;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,6 @@ public class ParticipantsActivity extends AppCompatActivity {
         initializeParticipantsListView();
         initializeAnswersListView();
         initializeDeletedParticipantsListView();
-
     }
 
     @Override
@@ -53,6 +55,7 @@ public class ParticipantsActivity extends AppCompatActivity {
         showAllListEntries();
         showAllDeletedListEntries();
     }
+
 
     private void showAllListEntries() {
         List<Participant> ParticipantsList = contentProvider.getAllParticipants();

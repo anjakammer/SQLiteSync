@@ -52,13 +52,11 @@ public class SyncActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_view);
         initializeParticipantsListView();
-
         participantsList = new ArrayList<>();
         showAllListEntries();
         Context mContext = getApplicationContext();
         contentProvider = new ContentProvider(mContext);
         syncProtocol = new SyncProtocol(contentProvider.getDbId(), mContext);
-
         mThreadHandler.post(mThread);
     }
 

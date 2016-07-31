@@ -213,8 +213,8 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < touchedQuestionsPositions.size(); i++) {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
-                                int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
+                                int positionInListView = touchedQuestionsPositions.keyAt(i);
+                                Question question = (Question) QuestionsListView.getItemAtPosition(positionInListView);
                                 contentProvider.deleteQuestion(question);
                             }
                         }
@@ -226,8 +226,8 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < touchedQuestionsPositions.size(); i++) {
                             boolean isChecked = touchedQuestionsPositions.valueAt(i);
                             if (isChecked) {
-                                int postitionInListView = touchedQuestionsPositions.keyAt(i);
-                                Question question = (Question) QuestionsListView.getItemAtPosition(postitionInListView);
+                                int positionInListView = touchedQuestionsPositions.keyAt(i);
+                                Question question = (Question) QuestionsListView.getItemAtPosition(positionInListView);
 
                                 AlertDialog editQuestionDialog = createEditQuestionDialog(question);
                                 editQuestionDialog.show();
@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void activateAddButton() {
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setVisibility(View.VISIBLE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -282,8 +283,46 @@ public class MainActivity extends AppCompatActivity {
             startActivity(startActivity);
             return true;
         }
+        if (id == R.id.action_settings) {
+            AlertDialog editQuestionDialog = createSettingsDialog();
+            editQuestionDialog.show();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private AlertDialog createSettingsDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+
+        View dialogsView = inflater.inflate(R.layout.dialog_edit_settings, null);
+
+        final EditText editTextNewName = (EditText) dialogsView.findViewById(R.id.editText_new_name);
+        editTextNewName.setText("to be implemented");
+        //TODO get Name from DB
+
+
+        builder.setView(dialogsView)
+                .setTitle(R.string.dialog_edit_profile)
+                .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        String name = editTextNewName.getText().toString();
+                        if ((TextUtils.isEmpty(name))) {
+                            return;
+                        }
+
+                        // TODO contentProvider.setInstanceName(name);
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_button_negative, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        return builder.create();
     }
 
     private AlertDialog createEditQuestionDialog(final Question question) {
@@ -300,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
         editTextNewDescription.setText(question.getDescription());
 
         builder.setView(dialogsView)
-                .setTitle(R.string.dialog_title)
+                .setTitle(R.string.dialog_edit_question_title)
                 .setPositiveButton(R.string.dialog_button_positive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
