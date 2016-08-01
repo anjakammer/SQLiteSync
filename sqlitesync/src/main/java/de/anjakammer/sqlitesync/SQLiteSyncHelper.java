@@ -33,6 +33,7 @@ public class SQLiteSyncHelper {
     public static final String SETTINGS_DROP = "DROP TABLE IF EXISTS " + TABLE_SETTINGS;
     private static final String KEY_IS_MASTER = "isMaster";
     private static final String KEY_DB_ID = "DB_ID";
+    private static final String KEY_INSTANCE_NAME = "instanceName";
     private static final String KEY_TABLES = "tables";
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_LASTSYNCTIME = "lastSyncTime";
@@ -70,17 +71,13 @@ public class SQLiteSyncHelper {
         }
 
         // Insert isMaster Key-Value pair
-        int intValueIsMaster = (isThisBDMaster) ? 1 : 0;
-        ContentValues isMasterKeyValue = new ContentValues();
-        isMasterKeyValue.put(COLUMN_KEY, KEY_IS_MASTER);
-        isMasterKeyValue.put(COLUMN_VALUE, intValueIsMaster);
-        this.db.insert(TABLE_SETTINGS, null, isMasterKeyValue);
+        insertValue(KEY_IS_MASTER, (isThisBDMaster) ? 1 : 0);
 
         // Insert dbID Key-Value pair
-        ContentValues dbIDKeyValue = new ContentValues();
-        dbIDKeyValue.put(COLUMN_KEY, KEY_DB_ID);
-        dbIDKeyValue.put(COLUMN_VALUE, dbID);
-        this.db.insert(TABLE_SETTINGS, null, dbIDKeyValue);
+        insertValue(KEY_DB_ID, dbID);
+
+        // Insert instanceName Key-Value Pair
+        insertValue(KEY_INSTANCE_NAME, android.os.Build.MODEL);
     }
 
     public void tearDownSyncableDB() {
@@ -92,7 +89,7 @@ public class SQLiteSyncHelper {
         values.put(COLUMN_TIMESTAMP, getTimestamp());
         values.put(COLUMN_IS_DELETED, 1);
 
-        db.update(table,
+        this.db.update(table,
                 values,
                 COLUMN_ID + " = " + _id,
                 null);
@@ -104,7 +101,7 @@ public class SQLiteSyncHelper {
         if(values.get(COLUMN_TIMESTAMP) == null){
             values.put(COLUMN_TIMESTAMP, getTimestamp());
         }
-        int update_id = db.update(table,
+        int update_id = this.db.update(table,
                 values,
                 COLUMN_ID + " = " + _id,
                 null);
@@ -287,18 +284,6 @@ public class SQLiteSyncHelper {
         return delta;
     }
 
-    private String getDbId() {
-        Cursor cursor = this.db.query(
-                TABLE_SETTINGS, new String[]{COLUMN_VALUE}, COLUMN_KEY + " = ?", new String[]{KEY_DB_ID}
-                , null, null, null
-        );
-        cursor.moveToFirst();
-        int valueIndex = cursor.getColumnIndex(COLUMN_VALUE);
-        String DbId = cursor.getString(valueIndex);
-        cursor.close();
-        return DbId;
-    }
-
     public List<String> getSyncableTableNames() {
 
         List<String> tableNames = new ArrayList<>();
@@ -390,8 +375,8 @@ public class SQLiteSyncHelper {
 
         this.db.update(TABLE_SETTINGS,
                 values,
-                COLUMN_KEY + "=" + KEY_IS_MASTER,
-                null);
+                COLUMN_KEY + " = ?"  ,
+                new String[]{KEY_IS_MASTER});
     }
 
     public void setDbID(String dbID) {
@@ -402,8 +387,12 @@ public class SQLiteSyncHelper {
 
         this.db.update(TABLE_SETTINGS,
                 values,
-                COLUMN_KEY + "=" + KEY_DB_ID,
-                null);
+                COLUMN_KEY + " = ?"  ,
+                new String[]{KEY_DB_ID});
+    }
+
+    private String getDbId() {
+        return getValue(KEY_DB_ID);
     }
 
     private String getTimestamp() {
@@ -416,5 +405,57 @@ public class SQLiteSyncHelper {
         List<String> columns = Arrays.asList(cursor.getColumnNames());
         cursor.close();
         return columns;
+    }
+
+    public void setInstanceName(String newName) {
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_VALUE, newName);
+
+        this.db.update(TABLE_SETTINGS,
+                values,
+                COLUMN_KEY + " = ?"  ,
+                new String[]{KEY_INSTANCE_NAME});
+    }
+
+    public String getInstanceName() {
+        return getValue(KEY_INSTANCE_NAME);
+    }
+
+    private String getValue(String key){
+        Cursor cursor = this.db.query(
+                TABLE_SETTINGS, new String[]{COLUMN_VALUE}, COLUMN_KEY + " = ?", new String[]{key}
+                , null, null, null
+        );
+        cursor.moveToFirst();
+        int valueIndex = cursor.getColumnIndex(COLUMN_VALUE);
+        String value = cursor.getString(valueIndex);
+        cursor.close();
+        return value;
+    }
+
+    private boolean insertValue(String key, long value){
+        ContentValues keyValue = new ContentValues();
+        keyValue.put(COLUMN_KEY, key);
+        keyValue.put(COLUMN_VALUE, value);
+        long _id = this.db.insert(TABLE_SETTINGS, null, keyValue);
+        return _id > -1;
+    }
+
+    private boolean insertValue(String key, String value){
+        ContentValues keyValue = new ContentValues();
+        keyValue.put(COLUMN_KEY, key);
+        keyValue.put(COLUMN_VALUE, value);
+        long _id = this.db.insert(TABLE_SETTINGS, null, keyValue);
+        return _id > -1;
+    }
+
+    public long insertIfNotExists(String table, ContentValues values, String[] uniqueColumns) throws SyncableDatabaseException {
+        for (String column: uniqueColumns) {
+            if(!values.containsKey(column)){
+                throw new SyncableDatabaseException(
+                        "Column "+ column + "does not exists in KeySet. Unable to insert item.");
+            }
+        }
+       return this.db.insertWithOnConflict(table, null, values, SQLiteDatabase.CONFLICT_IGNORE);
     }
 }

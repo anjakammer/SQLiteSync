@@ -5,12 +5,13 @@ public class Participant {
     private String address;
     private String name;
     private long id;
+    private boolean isSelected;
 
-
-    public Participant(String address, String name, long id) {
+    public Participant(String address, String name, long id, Boolean isSelected) {
         this.address = address;
         this.name = name;
         this.id = id;
+        this.isSelected = isSelected;
     }
 
     public String getAddress() {
@@ -35,6 +36,14 @@ public class Participant {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
     }
 
     @Override

@@ -30,6 +30,15 @@ public class ContentProvider {
     public String getDbId(){
         return DBHandler.DB_ID;
     }
+
+    public String getProfileName() {
+        return dbHandler.getProfileName();
+    }
+
+    public void setProfileName(String newName){
+        dbHandler.setProfileName(newName);
+    }
+
     public Answer createAnswer(String description, long participantId, long question_id) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_A_DESCRIPTION, description);
@@ -50,22 +59,32 @@ public class ContentProvider {
         return answer;
     }
 
+    public Participant createParticipant(String address, String name, Boolean isSelected) {
+        ContentValues values = new ContentValues();
+        values.put(DBHandler.COLUMN_P_ADDRESS, address);
+        values.put(DBHandler.COLUMN_P_NAME, name);
+        values.put(DBHandler.COLUMN_P_IS_SELECTED, (isSelected) ? 1 : 0);
+
+        long insertId = dbHandler.insert(DBHandler.TABLE_PARTICIPANTS, values);
+
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
+                DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(insertId)},
+                null, null, null, null);
+
+        cursor.moveToFirst();
+        Participant participant = cursorToParticipant(cursor);
+        cursor.close();
+        Log.d(LOG_TAG, "Participant saved! " + participant.toString());
+        return participant;
+    }
+
     public Question createQuestion(String description, String title) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_DESCRIPTION, description);
         values.put(DBHandler.COLUMN_TITLE, title);
 
         long insertId = dbHandler.insert(DBHandler.TABLE_QUESTIONS, values);
-
-        String[] participants = getParticipantsIds();
-        for (String participant: participants) {
-            ContentValues answerValues = new ContentValues();
-            answerValues.put(DBHandler.COLUMN_A_DESCRIPTION, "");
-            answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, insertId);
-            answerValues.put(DBHandler.COLUMN_A_PARTICIPANT_ID, Long.valueOf(participant));
-
-            dbHandler.insert(DBHandler.TABLE_ANSWERS, answerValues);
-        }
 
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONS,
                 DBHandler.QUESTION_COLUMNS, DBHandler.COLUMN_ID + " = ?",
@@ -125,10 +144,10 @@ public class ContentProvider {
                 null, null, null, null);
 
         cursor.moveToFirst();
-        Question Question = cursorToQuestion(cursor);
+        Question question = cursorToQuestion(cursor);
         cursor.close();
 
-        return Question;
+        return question;
     }
 
     private Question cursorToQuestion(Cursor cursor) {
@@ -162,18 +181,42 @@ public class ContentProvider {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_P_ID);
         int idName = cursor.getColumnIndex(DBHandler.COLUMN_P_NAME);
         int idAddress = cursor.getColumnIndex(DBHandler.COLUMN_P_ADDRESS);
+        int idIsSelected = cursor.getColumnIndex(DBHandler.COLUMN_P_IS_SELECTED);
 
         String address = cursor.getString(idAddress);
         String name = cursor.getString(idName);
         long id = cursor.getLong(idIndex);
-        return new Participant(address, name, id);
+        boolean isSelected = cursor.getLong(idIsSelected)== 1;
+        return new Participant(address, name, id, isSelected);
+    }
+
+    public Participant updateParticipant(long _id, String name, String address, boolean isSelected) {
+
+        ContentValues values = new ContentValues();
+        values.put(DBHandler.COLUMN_P_NAME, name);
+        values.put(DBHandler.COLUMN_P_ADDRESS, address);
+        values.put(DBHandler.COLUMN_P_IS_SELECTED, (isSelected) ? 1 : 0);
+
+        dbHandler.update(DBHandler.TABLE_PARTICIPANTS, _id, values);
+
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONS,
+                DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_P_ID + " = ?",
+                new String[]{String.valueOf(_id)},
+                null, null, null, null);
+
+        cursor.moveToFirst();
+        Participant participant = cursorToParticipant(cursor);
+        cursor.close();
+
+        return participant;
     }
 
     public List<Participant> getAllParticipants() {
         List<Participant> participantList = new ArrayList<>();
 
         Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
-                DBHandler.PARTICIPANTS_COLUMNS, null, null, null, null, null, null);
+                DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_P_IS_SELECTED+" = ?",
+                new String[]{"1"}, null, null, null, null);
 
         cursor.moveToFirst();
         Participant participant;
@@ -217,6 +260,18 @@ public class ContentProvider {
             cursor.close();
         }
         return participantList;
+    }
+
+    public Participant getParticipantByName(String name){
+        Participant participant = null;
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
+                DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_P_NAME + " = ?",
+                new String[] {name},
+                null, null, null, null);
+        cursor.moveToFirst();
+        participant = cursorToParticipant(cursor);
+        cursor.close();
+        return participant;
     }
 
     public List<Question> getAllQuestions() {
@@ -312,5 +367,28 @@ public class ContentProvider {
         }
         cursor.close();
         return ParticipantList;
+    }
+
+    public void setParticipant(Participant participant, boolean isSelected) {
+        long participantId = participant.getId();
+
+        if(isSelected) {
+            List<Question> questionList = getAllQuestions();
+            for (Question question : questionList) {
+                long questionId = question.getId();
+
+                ContentValues answerValues = new ContentValues();
+                answerValues.put(DBHandler.COLUMN_A_DESCRIPTION, "");
+                answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, questionId);
+                answerValues.put(DBHandler.COLUMN_A_PARTICIPANT_ID, participantId);
+                dbHandler.insertIfNotExists(DBHandler.TABLE_ANSWERS, answerValues);
+            }
+        }else{
+            List<Answer> answerList = getAnswersOfParticipant(participantId);
+            for (Answer answer : answerList) {
+                dbHandler.delete(DBHandler.TABLE_ANSWERS, answer.getId());
+            }
+            updateParticipant(participantId, participant.getName(), participant.getAddress(), false);
+        }
     }
 }

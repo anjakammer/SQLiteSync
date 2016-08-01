@@ -299,9 +299,7 @@ public class MainActivity extends AppCompatActivity {
         View dialogsView = inflater.inflate(R.layout.dialog_edit_settings, null);
 
         final EditText editTextNewName = (EditText) dialogsView.findViewById(R.id.editText_new_name);
-        editTextNewName.setText("to be implemented");
-        //TODO get Name from DB
-
+        editTextNewName.setText(contentProvider.getProfileName());
 
         builder.setView(dialogsView)
                 .setTitle(R.string.dialog_edit_profile)
@@ -313,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        // TODO contentProvider.setInstanceName(name);
+                        contentProvider.setProfileName(name);
                         dialog.dismiss();
                     }
                 })

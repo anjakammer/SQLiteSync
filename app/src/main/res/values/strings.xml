@@ -10,12 +10,13 @@
     <string name="headline_questions">Questions</string>
     <string name="headline_answers">Answers</string>
     <string name="headline_participants">Participants</string>
-    <string name="headline_active_participants">Active Participants</string>
+    <string name="headline_active_participants">Available Participants</string>
     <string name="headline_deleted_questions">Deleted Questions</string>
     <string name="headline_deleted_participants">Deleted Participants</string>
 
     // Error Messages
     <string name="editText_errorMessage">Field should not be empty.</string>
+    <string name="select_participants">Please, select at least one participant.</string>
 
     //ContextMenu
     <string name="cab_delete">Delete description</string>
@@ -32,5 +33,9 @@
     <string name="dialog_button_positive">Done</string>
     <string name="dialog_button_negative">Cancel</string>
     <string name="dialog_name">Name:</string>
+
+    //Button
+    <string name="button_set_peers_and_sync">set participants and synchronize</string>
+
 
 </resources>

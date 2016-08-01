@@ -30,6 +30,14 @@
         android:smoothScrollbar="true"
         android:layout_weight=".40" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:visibility="gone"
+        android:padding="15dp"
+        android:id="@+id/button_set_peers_and_sync"
+        android:text="@string/button_set_peers_and_sync" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -45,6 +53,8 @@
         android:layout_gravity="center_horizontal"
         android:smoothScrollbar="true"
         android:layout_weight=".40" />
+
+
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

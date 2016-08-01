@@ -7,7 +7,6 @@ public class Question {
     private String description;
     private String title;
     private long id;
-    private boolean isDeleted;
     private List<Answer> answers;
 
     public Question(String description, String title, long id) {
@@ -38,14 +37,6 @@ public class Question {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public boolean isDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        isDeleted = deleted;
     }
 
     public List<Answer> getAnswers() {
