@@ -13,6 +13,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.sharkfw.system.L;
+import net.sharksystem.android.peer.SharkServiceController;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +39,7 @@ public class SyncActivity extends AppCompatActivity {
     private ListView mParticipantsListView;
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
+    private SharkServiceController mServiceController;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,17 @@ public class SyncActivity extends AppCompatActivity {
 
         Context mContext = getApplicationContext();
         contentProvider = new ContentProvider(mContext);
+
+
+
+
+//        // TODO is this instance call necessary here? Should be in DataPort only
+        L.setLogLevel(L.LOGLEVEL_ALL);
+//        mServiceController = SharkServiceController.getInstance(mContext);
+//        mServiceController.setOffer(contentProvider.getProfileName(), contentProvider.getDbId());
+//        mServiceController.startShark();
+//        // TODO
+
         syncProtocol = new SyncProtocol(
                 contentProvider.getProfileName(),contentProvider.getDbId(), mContext);
 
@@ -68,11 +83,6 @@ public class SyncActivity extends AppCompatActivity {
                         participantsList.add(participant);
                     }
                 }
-
-                // TODO remove this test-injection
-                // TODO create Participants if they appear
-                participantsList.add(new Participant("address","name", -1, false ));
-                // TODO remove this test-injection
 
                 showAllListEntries();
                 mThreadHandler.postDelayed(this, 5000);

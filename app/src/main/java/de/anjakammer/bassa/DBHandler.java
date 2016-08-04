@@ -16,7 +16,7 @@ import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 public class DBHandler extends SQLiteOpenHelper{
 
     private static final String LOG_TAG = DBHandler.class.getSimpleName();
-    public static final String DB_ID = "Questionnaire";
+    public static final String DB_ID = "Q";
     public static final String DB_NAME = "Questionnaire.db";
     public static final int DB_VERSION = 6;
     public static final boolean IS_MASTER = true;

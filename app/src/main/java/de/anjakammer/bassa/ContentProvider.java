@@ -269,7 +269,11 @@ public class ContentProvider {
                 new String[] {name},
                 null, null, null, null);
         cursor.moveToFirst();
-        participant = cursorToParticipant(cursor);
+        if(cursor.getCount() < 1){
+            participant = new Participant("", name, -1, false);
+        }else{
+            participant = cursorToParticipant(cursor);
+        }
         cursor.close();
         return participant;
     }
