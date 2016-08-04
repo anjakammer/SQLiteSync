@@ -2,7 +2,6 @@ package de.anjakammer.bassa.commService;
 
 
 import android.content.Context;
-import android.os.Handler;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -11,16 +10,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.anjakammer.bassa.models.Participant;
 import de.anjakammer.sqlitesync.SyncProtocolInterface;
 
 public class SyncProtocol implements SyncProtocolInterface{
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
-    private static final String KEY_DB_ID = "DB_ID";
-    private static final String KEY_SYNCREQUEST = "syncRequest";
-    private static final String KEY_MESSAGE = "message";
-    private static final String VALUE_OK = "OK";
-    private static final String VALUE_CLOSE = "CLOSE";
+    public static final String KEY_DB_ID = "DB_ID";
+    public static final String VALUE_SYNCREQUEST = "SYNCREQUEST";
+    public static final String VALUE_DELTA = "DELTA";
+    public static final String KEY_MESSAGE = "message";
+    public static final String KEY_NAME = "name";
+    public static final String VALUE_OK = "OK";
+    public static final String VALUE_CLOSE = "CLOSE";
     private final String DbId;
 
     DataPort dataPort;
@@ -33,12 +33,12 @@ public class SyncProtocol implements SyncProtocolInterface{
     public void syncRequest(){
         JSONObject request = new JSONObject();
         try {
+            request.put(KEY_MESSAGE, VALUE_SYNCREQUEST);
             request.put(KEY_DB_ID, DbId);
         } catch (JSONException e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "JSONObject error for writing syncRequest JSON: " + e.getMessage());
         }
-
         dataPort.sendData(request.toString());
     }
 

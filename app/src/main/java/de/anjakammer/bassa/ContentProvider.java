@@ -5,12 +5,16 @@ import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import de.anjakammer.bassa.models.Answer;
 import de.anjakammer.bassa.models.Participant;
 import de.anjakammer.bassa.models.Question;
+import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 
 public class ContentProvider {
@@ -194,7 +198,7 @@ public class ContentProvider {
 
         dbHandler.update(DBHandler.TABLE_PARTICIPANTS, _id, values);
 
-        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_QUESTIONS,
+        Cursor cursor = dbHandler.select(false, DBHandler.TABLE_PARTICIPANTS,
                 DBHandler.PARTICIPANTS_COLUMNS, DBHandler.COLUMN_P_ID + " = ?",
                 new String[]{String.valueOf(_id)},
                 null, null, null, null);
@@ -381,6 +385,7 @@ public class ContentProvider {
                 answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, questionId);
                 answerValues.put(DBHandler.COLUMN_A_PARTICIPANT_ID, participantId);
                 dbHandler.insertIfNotExists(DBHandler.TABLE_ANSWERS, answerValues);
+                updateParticipant(participantId, participant.getName(), true);
             }
         }else{
             List<Answer> answerList = getAnswersOfParticipant(participantId);
@@ -389,5 +394,9 @@ public class ContentProvider {
             }
             updateParticipant(participantId, participant.getName(), false);
         }
+    }
+
+    public JSONObject getUpdate(JSONObject delta) throws SyncableDatabaseException {
+        return dbHandler.getUpdate(delta);
     }
 }

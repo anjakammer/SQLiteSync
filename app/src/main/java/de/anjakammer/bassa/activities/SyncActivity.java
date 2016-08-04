@@ -22,7 +22,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import de.anjakammer.bassa.ContentProvider;
 import de.anjakammer.bassa.R;
@@ -38,7 +37,7 @@ import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 public class SyncActivity extends AppCompatActivity {
 
-    private static final String KEY_NAME = "name";
+
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
     private Handler mThreadHandler;
     private Runnable participantsLookup;
@@ -49,6 +48,7 @@ public class SyncActivity extends AppCompatActivity {
     private List<Participant> participantsList;
     private SharkServiceController mServiceController;
     private List<JSONObject> responses;
+    private Handler responseHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -136,58 +136,45 @@ public class SyncActivity extends AppCompatActivity {
     private HashMap<String, Boolean> processParticipantsSync() {
         HashMap<String, Boolean> syncLog = new HashMap<>();
         List<Participant> participantsList = contentProvider.getAllParticipants();
+        // TODO only fetch responses, when size > 0
         HashMap<String, JSONObject> responseMap = fetchResponses();
 
         for(Participant participant : participantsList){
             String participantName = participant.getName();
-            boolean status;
+            boolean status = false;
             if(responseMap.containsKey(participantName)){
                 try {
-                    syncParticipant(participantName);
-                    status = true;
-                }catch (SyncableDatabaseException e){
+                    JSONObject delta = contentProvider.getUpdate(responseMap.get(participantName));
+                    syncProtocol.sendDelta(delta);
+                    // TODO is it fast enough to get response?
+                    String finished = fetchResponses().get(participantName).getString(SyncProtocol.KEY_MESSAGE);
+                    status = finished.equals(SyncProtocol.VALUE_OK );
+                    if(status){syncProtocol.sendOK();}
+                }catch (SyncableDatabaseException |JSONException e) {
                     status = false;
-                    Log.e(LOG_TAG, "Synchronization for Participant "+
-                            participantName+" failed: " + e.getMessage());
+                    Log.e(LOG_TAG, "Synchronization for Participant " +
+                            participantName + " failed: " + e.getMessage());
                 }
-            }else{
-                status = false;
             }
             syncLog.put(participantName,status);
         }
         return syncLog;
     }
 
-    private void syncParticipant(String participantName) throws SyncableDatabaseException{
-        // TODO yay finally you can sync it !
-        // todo make an hashmap with name and response
-    }
-
-
     private HashMap<String, JSONObject> fetchResponses(){
-        long startTime = System.currentTimeMillis();
-        long timeLimit = System.currentTimeMillis()+30000;
-        getResponse = new Runnable() {
-            @Override
-            public void run() {
+
+        long timeLimit = System.currentTimeMillis()+5000;
+        while(System.currentTimeMillis() < timeLimit) {
                 setResponses(syncProtocol.receiveResponse());
-            }
-        };
-
-        boolean fetching = true;
-
-        while(fetching) {
-            mThreadHandler.postDelayed(getResponse,2000);
-            if (System.currentTimeMillis() - startTime > timeLimit) {
-                fetching = false;
-            }
+            //wait for it
         }
-        mThreadHandler.removeCallbacks(getResponse);
 
         HashMap<String, JSONObject> responseMap = new HashMap<>();
         for (JSONObject response : responses){
             try {
-                responseMap.put(response.get(KEY_NAME).toString(), response);
+                responseMap.put(
+                        response.getString(SyncProtocol.KEY_NAME),
+                        response);
             } catch (JSONException e) {
                 e.printStackTrace();
                 Log.e(LOG_TAG, "JSONObject error for reading responses JSON: " + e.getMessage());

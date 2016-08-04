@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,7 +100,7 @@ public class DBHandler extends SQLiteOpenHelper{
         }
 
 //        try {
-            // TODO rerender view after updating the DB !
+        // TODO rerender view after updating the DB !
 //            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta())){
 //                Log.d(LOG_TAG, "successfully DB update");
 //            }
@@ -177,8 +180,8 @@ public class DBHandler extends SQLiteOpenHelper{
     }
 
     public Cursor selectDeleted(boolean distinct, String table, String[] columns,
-                         String selection, String[] selectionArgs, String groupBy,
-                         String having, String orderBy, String limit){
+                                String selection, String[] selectionArgs, String groupBy,
+                                String having, String orderBy, String limit){
         return this.SyncDBHelper.selectDeleted(distinct, table, columns, selection, selectionArgs,
                 groupBy, having, orderBy, limit);
     }
@@ -189,5 +192,17 @@ public class DBHandler extends SQLiteOpenHelper{
 
     public String getProfileName() {
         return SyncDBHelper.getInstanceName();
+    }
+
+    public JSONObject getUpdate(JSONObject ParticipantDelta) throws SyncableDatabaseException {
+        boolean status = false;
+        JSONObject dBDelta = new JSONObject();
+        try{
+            dBDelta = this.SyncDBHelper.getDelta(ParticipantDelta);
+            status = this.SyncDBHelper.updateDB(ParticipantDelta);
+        }catch (JSONException e){
+            Log.e(LOG_TAG, "Error while reading/writing Update JSON "+ e.getMessage());
+        }
+        return (status)? dBDelta : null;
     }
 }

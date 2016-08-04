@@ -209,8 +209,8 @@ public class SQLiteSyncHelper {
         return true;
     }
 
-    public JSONObject getDelta(String lastSyncTime){
-
+    public JSONObject getDelta(JSONObject peerDelta) throws JSONException {
+        String lastSyncTime = peerDelta.getString(KEY_LAST_SYNC_TIME);
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
         List<String> tableNames = getSyncableTableNames();
