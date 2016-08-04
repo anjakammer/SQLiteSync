@@ -2,6 +2,7 @@ package de.anjakammer.bassa.commService;
 
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -10,6 +11,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.anjakammer.bassa.models.Participant;
 import de.anjakammer.sqlitesync.SyncProtocolInterface;
 
 public class SyncProtocol implements SyncProtocolInterface{
@@ -29,7 +31,6 @@ public class SyncProtocol implements SyncProtocolInterface{
     }
 
     public void syncRequest(){
-        // TODO receiver integration not necessary? Broadcast?
         JSONObject request = new JSONObject();
         try {
             request.put(KEY_DB_ID, DbId);
@@ -49,19 +50,22 @@ public class SyncProtocol implements SyncProtocolInterface{
         dataPort.sendData(delta.toString());
     }
 
-    public List<JSONObject> receiveResponse() throws JSONException {
-        // TODO polling for messages, using Handler and postDelayed
+    public List<JSONObject> receiveResponse(){
         List<JSONObject> responses = new ArrayList<>();
 
         List<String> data = dataPort.getData();
-        for (String item : data) {
-            JSONObject response = new JSONObject(item);
+        try{
+            for (String item : data) {
+                JSONObject response = new JSONObject(item);
 
-            if (response.get(KEY_DB_ID).equals(this.DbId)){
-                responses.add(response);
+                if (response.get(KEY_DB_ID).equals(this.DbId)){
+                    responses.add(response);
+                }
             }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "JSONObject error for reading responses JSON: " + e.getMessage());
         }
-
         return responses;
     }
 

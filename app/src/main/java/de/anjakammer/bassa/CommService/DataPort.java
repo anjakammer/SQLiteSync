@@ -39,7 +39,7 @@ public class DataPort{
 
     public List<String> getData(){
         data = mServiceController.getStringMessages();
-        return  this.data;
+        return this.data;
     }
 
     public List<String> getPeers(){

@@ -36,7 +36,7 @@ public class SQLiteSyncHelper {
     private static final String KEY_INSTANCE_NAME = "instanceName";
     private static final String KEY_TABLES = "tables";
     private static final String KEY_MESSAGE = "message";
-    private static final String KEY_LASTSYNCTIME = "lastSyncTime";
+    private static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
     private static final String VALUE_DELTA = "DELTA";
     private static final String COLUMN_IS_DELETED = "isDeleted";
     private static final String COLUMN_TIMESTAMP = "timestamp";
@@ -78,6 +78,9 @@ public class SQLiteSyncHelper {
 
         // Insert instanceName Key-Value Pair
         insertValue(KEY_INSTANCE_NAME, android.os.Build.MODEL);
+
+        // Insert last sync time Key-Value Pair
+        insertValue(KEY_LAST_SYNC_TIME, new Timestamp(0).toString());
     }
 
     public void tearDownSyncableDB() {
@@ -206,19 +209,7 @@ public class SQLiteSyncHelper {
         return true;
     }
 
-    public JSONObject getDelta(JSONObject peer) throws SyncableDatabaseException {
-        String lastSyncTime = null;
-        try {
-            if (!peer.getString(KEY_DB_ID).equals(this.dbID)) {
-                throw new SyncableDatabaseException(
-                        "Database ID of Peer does not match this application Database ID");
-            }
-            lastSyncTime = peer.getString(KEY_LASTSYNCTIME);
-        } catch (JSONException e) {
-            throw new SyncableDatabaseException(
-                    "JSONObject error for getting lastSyncTime from peer: "
-                            + e.getMessage());
-        }
+    public JSONObject getDelta(String lastSyncTime){
 
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
@@ -275,7 +266,7 @@ public class SQLiteSyncHelper {
             delta.put(KEY_MESSAGE, VALUE_DELTA);
             delta.put(KEY_DB_ID, dbId);
             delta.put(KEY_IS_MASTER, String.valueOf(this.isMaster));
-            delta.put(KEY_LASTSYNCTIME, lastSyncTime);
+            delta.put(KEY_LAST_SYNC_TIME, lastSyncTime);
             delta.put(KEY_TABLES, new JSONArray());
         } catch (JSONException e) {
             e.printStackTrace();

@@ -16,7 +16,8 @@
 
     // Error Messages
     <string name="editText_errorMessage">Field should not be empty.</string>
-    <string name="select_participants">Please, select at least one participant.</string>
+    <string name="activate_wifi">Please activate Wifi.</string>
+    <string name="select_participants">Please select at least one participant.</string>
 
     //ContextMenu
     <string name="cab_delete">Delete description</string>

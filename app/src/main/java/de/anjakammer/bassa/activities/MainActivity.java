@@ -1,6 +1,7 @@
 package de.anjakammer.bassa.activities;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.graphics.Paint;
 import android.widget.TextView;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import de.anjakammer.bassa.ContentProvider;
 import de.anjakammer.bassa.fragments.DetailFragment;
@@ -43,9 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private ListView mQuestionsListView;
     private ListView mAnswersListView;
     private ListView mDeletedQuestionsListView;
-    private FloatingActionButton fab;
-    private WifiManager mWifiManager;
-    private Intent intent;
 
 
     @Override
@@ -64,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         initializeContextualActionBar();
         initializeAnswersListView();
 
-//        mWifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-//
-//        if(!mWifiManager.isWifiEnabled()){
-//            // TODO must be enabled for sync
-//        }
+        WifiManager mWifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        if(!mWifiManager.isWifiEnabled()){
+            Toast.makeText(getApplicationContext()
+                    , R.string.activate_wifi, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -250,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void activateAddButton() {
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.VISIBLE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override

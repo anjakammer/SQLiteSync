@@ -74,6 +74,7 @@ public class ParticipantsActivity extends AppCompatActivity {
         adapterForDeleted.addAll(DeletedParticipantsList);
         adapterForDeleted.notifyDataSetChanged();
     }
+
     private void initializeParticipantsListView() {
 
         List<Participant> emptyListForInitialization = new ArrayList<>();

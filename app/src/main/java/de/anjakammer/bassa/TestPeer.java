@@ -46,6 +46,7 @@ public class TestPeer {
         JSONObject delta = new JSONObject();
         try {
             delta.put("message","DELTA");
+            delta.put("name","Peer1");
             delta.put("lastSyncTime",lastSyncTime);
             delta.put("DB_ID","QuestionnaireGroup1");
             delta.put("isMaster","false");
