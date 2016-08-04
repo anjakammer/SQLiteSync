@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -36,7 +37,19 @@ public class SyncActivity extends AppCompatActivity {
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
 
-    public SyncActivity(){
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.list_view);
+        createSyncButton();
+        initializeParticipantsListView();
+        participantsList = new ArrayList<>();
+        showAllListEntries();
+
+        Context mContext = getApplicationContext();
+        contentProvider = new ContentProvider(mContext);
+        syncProtocol = new SyncProtocol(
+                contentProvider.getProfileName(),contentProvider.getDbId(), mContext);
 
         mThreadHandler = new Handler();
         mThread = new Runnable() {
@@ -65,20 +78,7 @@ public class SyncActivity extends AppCompatActivity {
                 mThreadHandler.postDelayed(this, 5000);
             }
         };
-    }
 
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.list_view);
-        createSyncButton();
-        initializeParticipantsListView();
-        participantsList = new ArrayList<>();
-        showAllListEntries();
-        Context mContext = getApplicationContext();
-        contentProvider = new ContentProvider(mContext);
-        syncProtocol = new SyncProtocol(contentProvider.getDbId(), mContext);
         mThreadHandler.post(mThread);
     }
 

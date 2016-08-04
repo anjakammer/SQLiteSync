@@ -23,9 +23,9 @@ public class SyncProtocol implements SyncProtocolInterface{
 
     DataPort dataPort;
 
-    public SyncProtocol(String DbId, Context context){
+    public SyncProtocol(String name, String DbId, Context context){
         this.DbId = DbId;
-        this.dataPort = new DataPort(DbId, KEY_SYNCREQUEST, context);
+        this.dataPort = new DataPort(name, DbId, context);
     }
 
     public void syncRequest(){
