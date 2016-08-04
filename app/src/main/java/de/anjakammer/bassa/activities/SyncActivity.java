@@ -74,9 +74,7 @@ public class SyncActivity extends AppCompatActivity {
 
                 for(String participantName : syncProtocol.getPeers()){
                     Participant participant = contentProvider.getParticipantByName(participantName);
-                    // TODO ID should be -1 for unknown Peers
                     if(participant.getId() == -1){
-                        // TODO what about the address?
                         participantsList.add(
                                 contentProvider.createParticipant("", participantName, false));
                     }else{

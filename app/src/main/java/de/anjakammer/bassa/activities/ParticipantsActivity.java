@@ -91,7 +91,7 @@ public class ParticipantsActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Participant participant = (Participant) adapterView.getItemAtPosition(position);
                 TextView ParticipantPlaceholder = (TextView) findViewById(R.id.item);
-                String str = participant.getName() + ": \n" + participant.getAddress();
+                String str = participant.getName();
                 ParticipantPlaceholder.setText(str);
                 setmAnswersListView(participant);
             }

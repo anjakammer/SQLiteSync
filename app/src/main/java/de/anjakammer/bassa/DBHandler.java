@@ -34,7 +34,6 @@ public class DBHandler extends SQLiteOpenHelper{
 
     public static final String TABLE_PARTICIPANTS = "Participants";
     public static final String COLUMN_P_ID = "_id";
-    public static final String COLUMN_P_ADDRESS = "address";
     public static final String COLUMN_P_NAME = "name";
     public static final String COLUMN_P_IS_SELECTED = "isSelected";
 
@@ -53,7 +52,6 @@ public class DBHandler extends SQLiteOpenHelper{
 
     public static final String[] PARTICIPANTS_COLUMNS = {
             COLUMN_P_ID,
-            COLUMN_P_ADDRESS,
             COLUMN_P_NAME,
             COLUMN_P_IS_SELECTED
     };
@@ -80,7 +78,6 @@ public class DBHandler extends SQLiteOpenHelper{
     public static final String PARTICIPANTS_CREATE =
             "CREATE TABLE " + TABLE_PARTICIPANTS +
                     "( " + COLUMN_P_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_P_ADDRESS + " TEXT NOT NULL, " +
                     COLUMN_P_IS_SELECTED + " BOOLEAN NOT NULL DEFAULT 0, " +
                     COLUMN_P_NAME + " TEXT NOT NULL );";
 

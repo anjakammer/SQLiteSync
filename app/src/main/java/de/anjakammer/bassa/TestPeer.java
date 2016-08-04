@@ -27,19 +27,16 @@ public class TestPeer {
         ContentValues valuesA = new ContentValues();
         valuesA.put(DBHandler.COLUMN_P_ID, 1);
         valuesA.put(DBHandler.COLUMN_P_NAME, "Peer1");
-        valuesA.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:1");
         dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesA);
 
         ContentValues valuesB = new ContentValues();
         valuesB.put(DBHandler.COLUMN_P_ID, 2);
         valuesB.put(DBHandler.COLUMN_P_NAME, "Peer2");
-        valuesB.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:2");
         dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesB);
 
         ContentValues valuesC = new ContentValues();
         valuesC.put(DBHandler.COLUMN_P_ID, 3);
         valuesC.put(DBHandler.COLUMN_P_NAME, "Peer3");
-        valuesC.put(DBHandler.COLUMN_P_ADDRESS, "Address:to:3");
         dbHandler.insert(DBHandler.TABLE_PARTICIPANTS,valuesC);
     }
 

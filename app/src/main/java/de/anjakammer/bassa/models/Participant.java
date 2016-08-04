@@ -2,24 +2,14 @@ package de.anjakammer.bassa.models;
 
 public class Participant {
 
-    private String address;
     private String name;
     private long id;
     private boolean isSelected;
 
-    public Participant(String address, String name, long id, Boolean isSelected) {
-        this.address = address;
+    public Participant(String name, long id, Boolean isSelected) {
         this.name = name;
         this.id = id;
         this.isSelected = isSelected;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getName() {
@@ -48,6 +38,6 @@ public class Participant {
 
     @Override
     public String toString() {
-        return name + ": " + address;
+        return name;
     }
 }

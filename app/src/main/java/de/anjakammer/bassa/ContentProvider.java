@@ -59,9 +59,8 @@ public class ContentProvider {
         return answer;
     }
 
-    public Participant createParticipant(String address, String name, Boolean isSelected) {
+    public Participant createParticipant(String name, Boolean isSelected) {
         ContentValues values = new ContentValues();
-        values.put(DBHandler.COLUMN_P_ADDRESS, address);
         values.put(DBHandler.COLUMN_P_NAME, name);
         values.put(DBHandler.COLUMN_P_IS_SELECTED, (isSelected) ? 1 : 0);
 
@@ -180,21 +179,17 @@ public class ContentProvider {
     private Participant cursorToParticipant(Cursor cursor) {
         int idIndex = cursor.getColumnIndex(DBHandler.COLUMN_P_ID);
         int idName = cursor.getColumnIndex(DBHandler.COLUMN_P_NAME);
-        int idAddress = cursor.getColumnIndex(DBHandler.COLUMN_P_ADDRESS);
         int idIsSelected = cursor.getColumnIndex(DBHandler.COLUMN_P_IS_SELECTED);
 
-        String address = cursor.getString(idAddress);
         String name = cursor.getString(idName);
         long id = cursor.getLong(idIndex);
         boolean isSelected = cursor.getLong(idIsSelected)== 1;
-        return new Participant(address, name, id, isSelected);
+        return new Participant(name, id, isSelected);
     }
 
-    public Participant updateParticipant(long _id, String name, String address, boolean isSelected) {
-
+    public Participant updateParticipant(long _id, String name, boolean isSelected) {
         ContentValues values = new ContentValues();
         values.put(DBHandler.COLUMN_P_NAME, name);
-        values.put(DBHandler.COLUMN_P_ADDRESS, address);
         values.put(DBHandler.COLUMN_P_IS_SELECTED, (isSelected) ? 1 : 0);
 
         dbHandler.update(DBHandler.TABLE_PARTICIPANTS, _id, values);
@@ -270,7 +265,7 @@ public class ContentProvider {
                 null, null, null, null);
         cursor.moveToFirst();
         if(cursor.getCount() < 1){
-            participant = new Participant("", name, -1, false);
+            participant = new Participant(name, -1, false);
         }else{
             participant = cursorToParticipant(cursor);
         }
@@ -392,7 +387,7 @@ public class ContentProvider {
             for (Answer answer : answerList) {
                 dbHandler.delete(DBHandler.TABLE_ANSWERS, answer.getId());
             }
-            updateParticipant(participantId, participant.getName(), participant.getAddress(), false);
+            updateParticipant(participantId, participant.getName(), false);
         }
     }
 }
