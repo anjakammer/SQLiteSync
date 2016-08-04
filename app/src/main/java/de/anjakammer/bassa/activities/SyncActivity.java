@@ -76,7 +76,7 @@ public class SyncActivity extends AppCompatActivity {
                     Participant participant = contentProvider.getParticipantByName(participantName);
                     if(participant.getId() == -1){
                         participantsList.add(
-                                contentProvider.createParticipant("", participantName, false));
+                                contentProvider.createParticipant(participantName, false));
                     }else{
                         participantsList.add(participant);
                     }
