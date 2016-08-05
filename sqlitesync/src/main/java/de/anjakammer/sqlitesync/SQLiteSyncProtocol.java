@@ -2,15 +2,16 @@ package de.anjakammer.sqlitesync;
 
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.List;
 
-public interface SyncProtocolInterface {
+public interface SQLiteSyncProtocol {
 
-    String KEY_DB_ID = "DB_ID";
-    String KEY_SYNCREQUEST = "syncRequest";
+    String KEY_DB_ID = "dbId";
+    String KEY_NAME = "name";
     String KEY_MESSAGE = "message";
+    String VALUE_DELTA = "DELTA";
+    String VALUE_SYNCREQUEST = "SYNCREQUEST";
     String VALUE_OK = "OK";
     String VALUE_CLOSE = "CLOSE";
 
@@ -18,9 +19,10 @@ public interface SyncProtocolInterface {
 
     List<String> getPeers();
 
-    void sendDelta(JSONObject delta);
+    void sendDelta(Talk talk);
+    // Talk.toString();
 
-    List<JSONObject> receiveResponse() throws JSONException;
+    List<Talk> receiveResponse() throws JSONException;
 
     void sendOK();
 

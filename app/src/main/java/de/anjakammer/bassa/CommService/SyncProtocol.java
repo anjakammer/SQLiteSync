@@ -10,11 +10,13 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.anjakammer.sqlitesync.SyncProtocolInterface;
+import de.anjakammer.sqlitesync.Talk;
+import de.anjakammer.sqlitesync.SQLiteSyncProtocol;
+import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
-public class SyncProtocol implements SyncProtocolInterface{
+public class SyncProtocol implements SQLiteSyncProtocol {
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
-    public static final String KEY_DB_ID = "DB_ID";
+    public static final String KEY_DB_ID = "dbId";
     public static final String VALUE_SYNCREQUEST = "SYNCREQUEST";
     public static final String VALUE_DELTA = "DELTA";
     public static final String KEY_MESSAGE = "message";
@@ -22,23 +24,20 @@ public class SyncProtocol implements SyncProtocolInterface{
     public static final String VALUE_OK = "OK";
     public static final String VALUE_CLOSE = "CLOSE";
     private final String DbId;
+    private final String name;
 
     DataPort dataPort;
 
     public SyncProtocol(String name, String DbId, Context context){
         this.DbId = DbId;
+        this.name = name;
         this.dataPort = new DataPort(name, DbId, context);
     }
 
     public void syncRequest(){
-        JSONObject request = new JSONObject();
-        try {
-            request.put(KEY_MESSAGE, VALUE_SYNCREQUEST);
-            request.put(KEY_DB_ID, DbId);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error for writing syncRequest JSON: " + e.getMessage());
-        }
+        Talk request = new Talk(this.name, VALUE_SYNCREQUEST);
+        request.setInterest(DbId);
+
         dataPort.sendData(request.toString());
     }
 
@@ -46,25 +45,25 @@ public class SyncProtocol implements SyncProtocolInterface{
         return dataPort.getPeers();
     }
 
-    public void sendDelta(JSONObject delta){
+    public void sendDelta(Talk delta){
         dataPort.sendData(delta.toString());
     }
 
-    public List<JSONObject> receiveResponse(){
-        List<JSONObject> responses = new ArrayList<>();
+    public List<Talk> receiveResponse(){
+        List<Talk> responses = new ArrayList<>();
 
         List<String> data = dataPort.getData();
         try{
             for (String item : data) {
-                JSONObject response = new JSONObject(item);
+                Talk response = new Talk(item);
 
-                if (response.get(KEY_DB_ID).equals(this.DbId)){
+                if (response.getInterest().equals(this.DbId)){
                     responses.add(response);
                 }
             }
-        } catch (JSONException e) {
+        } catch (SyncableDatabaseException e) {
             e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error for reading responses JSON: " + e.getMessage());
+            Log.e(LOG_TAG, e.getMessage());
         }
         return responses;
     }
@@ -79,14 +78,8 @@ public class SyncProtocol implements SyncProtocolInterface{
     }
 
     private String writeMessage(String messageToSend){
-        JSONObject message = new JSONObject();
-        try {
-            message.put(KEY_MESSAGE, messageToSend);
-            message.put(KEY_DB_ID, this.DbId);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "JSONObject error for writing "+messageToSend+"-Message JSON: " + e.getMessage());
-        }
+        Talk message = new Talk(this.name, messageToSend);
+        message.setInterest(this.DbId);
         return message.toString();
     }
 }

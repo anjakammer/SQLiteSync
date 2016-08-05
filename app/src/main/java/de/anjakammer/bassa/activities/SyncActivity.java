@@ -27,6 +27,7 @@ import de.anjakammer.bassa.ContentProvider;
 import de.anjakammer.bassa.R;
 import de.anjakammer.bassa.commService.SyncProtocol;
 import de.anjakammer.bassa.models.Participant;
+import de.anjakammer.sqlitesync.Talk;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 
@@ -47,7 +48,7 @@ public class SyncActivity extends AppCompatActivity {
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
     private SharkServiceController mServiceController;
-    private List<JSONObject> responses;
+    private List<Talk> responses;
     private Handler responseHandler;
 
     @Override
@@ -136,54 +137,53 @@ public class SyncActivity extends AppCompatActivity {
     private HashMap<String, Boolean> processParticipantsSync() {
         HashMap<String, Boolean> syncLog = new HashMap<>();
         List<Participant> participantsList = contentProvider.getAllParticipants();
-        // TODO only fetch responses, when size > 0
-        HashMap<String, JSONObject> responseMap = fetchResponses();
 
-        for(Participant participant : participantsList){
-            String participantName = participant.getName();
-            boolean status = false;
-            if(responseMap.containsKey(participantName)){
-                try {
-                    JSONObject delta = contentProvider.getUpdate(responseMap.get(participantName));
-                    syncProtocol.sendDelta(delta);
-                    // TODO is it fast enough to get response?
-                    String finished = fetchResponses().get(participantName).getString(SyncProtocol.KEY_MESSAGE);
-                    status = finished.equals(SyncProtocol.VALUE_OK );
-                    if(status){syncProtocol.sendOK();}
-                }catch (SyncableDatabaseException |JSONException e) {
-                    status = false;
-                    Log.e(LOG_TAG, "Synchronization for Participant " +
-                            participantName + " failed: " + e.getMessage());
+        if(participantsList.size()>0) {
+            HashMap<String, JSONObject> responseMap = fetchResponses();
+
+            for (Participant participant : participantsList) {
+                String participantName = participant.getName();
+                boolean status = false;
+                if (responseMap.containsKey(participantName)) {
+                    try {
+                        JSONObject delta = contentProvider.getUpdate(responseMap.get(participantName));
+                        syncProtocol.sendDelta(delta);
+                        // TODO is it fast enough to get response?
+                        String finished = fetchResponses().get(participantName).getString(SyncProtocol.KEY_MESSAGE);
+                        status = finished.equals(SyncProtocol.VALUE_OK);
+                        if (status) {
+                            syncProtocol.sendOK();
+                        }
+                    } catch (SyncableDatabaseException | JSONException e) {
+                        status = false;
+                        Log.e(LOG_TAG, "Synchronization for Participant " +
+                                participantName + " failed: " + e.getMessage());
+                    }
                 }
+                syncLog.put(participantName, status);
             }
-            syncLog.put(participantName,status);
         }
         return syncLog;
     }
 
-    private HashMap<String, JSONObject> fetchResponses(){
+    private HashMap<String, Talk> fetchResponses(){
 
         long timeLimit = System.currentTimeMillis()+5000;
         while(System.currentTimeMillis() < timeLimit) {
-                setResponses(syncProtocol.receiveResponse());
+            setResponses(syncProtocol.receiveResponse());
             //wait for it
         }
 
-        HashMap<String, JSONObject> responseMap = new HashMap<>();
-        for (JSONObject response : responses){
-            try {
-                responseMap.put(
-                        response.getString(SyncProtocol.KEY_NAME),
-                        response);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.e(LOG_TAG, "JSONObject error for reading responses JSON: " + e.getMessage());
-            }
+        HashMap<String, Talk> responseMap = new HashMap<>();
+        for (Talk response : responses){
+            responseMap.put(
+                    response.getName(),
+                    response);
         }
         return responseMap;
     }
 
-    private void setResponses(List<JSONObject> responses){
+    private void setResponses(List<Talk> responses){
         this.responses = responses;
     }
 
