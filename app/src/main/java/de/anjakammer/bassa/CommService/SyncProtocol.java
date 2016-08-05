@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.anjakammer.sqlitesync.Talk;
@@ -45,12 +46,12 @@ public class SyncProtocol implements SQLiteSyncProtocol {
         return dataPort.getPeers();
     }
 
-    public void sendDelta(Talk delta){
+    public void sendDelta(JSONObject delta){
         dataPort.sendData(delta.toString());
     }
 
-    public List<Talk> receiveResponse(){
-        List<Talk> responses = new ArrayList<>();
+    public HashMap<String, Talk> receiveResponse(){
+        HashMap<String, Talk> responseMap = new HashMap<>();
 
         List<String> data = dataPort.getData();
         try{
@@ -58,14 +59,14 @@ public class SyncProtocol implements SQLiteSyncProtocol {
                 Talk response = new Talk(item);
 
                 if (response.getInterest().equals(this.DbId)){
-                    responses.add(response);
+                    responseMap.put(response.getName(),response);
                 }
             }
         } catch (SyncableDatabaseException e) {
             e.printStackTrace();
             Log.e(LOG_TAG, e.getMessage());
         }
-        return responses;
+        return responseMap;
     }
 
 

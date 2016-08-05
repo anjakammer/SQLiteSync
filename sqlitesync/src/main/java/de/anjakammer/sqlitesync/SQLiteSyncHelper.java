@@ -36,7 +36,7 @@ public class SQLiteSyncHelper {
     private static final String KEY_INSTANCE_NAME = "instanceName";
     private static final String KEY_TABLES = "tables";
     private static final String KEY_MESSAGE = "message";
-    private static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
+    public static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
     private static final String VALUE_DELTA = "DELTA";
     private static final String COLUMN_IS_DELETED = "isDeleted";
     private static final String COLUMN_TIMESTAMP = "timestamp";
@@ -209,8 +209,8 @@ public class SQLiteSyncHelper {
         return true;
     }
 
-    public JSONObject getDelta(JSONObject peerDelta) throws JSONException {
-        String lastSyncTime = peerDelta.getString(KEY_LAST_SYNC_TIME);
+    public JSONObject getDelta(String lastSyncTime) throws JSONException {
+
         JSONObject delta = prepareDeltaObject(lastSyncTime, getDbId());
 
         List<String> tableNames = getSyncableTableNames();

@@ -195,13 +195,14 @@ public class DBHandler extends SQLiteOpenHelper{
     }
 
     public JSONObject getUpdate(JSONObject ParticipantDelta) throws SyncableDatabaseException {
-        boolean status = false;
-        JSONObject dBDelta = new JSONObject();
+        JSONObject dBDelta;
+        boolean status;
         try{
-            dBDelta = this.SyncDBHelper.getDelta(ParticipantDelta);
+            dBDelta = this.SyncDBHelper.getDelta(ParticipantDelta.getString(SQLiteSyncHelper.KEY_LAST_SYNC_TIME));
             status = this.SyncDBHelper.updateDB(ParticipantDelta);
         }catch (JSONException e){
-            Log.e(LOG_TAG, "Error while reading/writing Update JSON "+ e.getMessage());
+            throw new SyncableDatabaseException("Error while creating delta for synchronization: "+
+            e.getMessage());
         }
         return (status)? dBDelta : null;
     }

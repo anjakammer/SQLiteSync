@@ -40,6 +40,7 @@ public class SyncActivity extends AppCompatActivity {
 
 
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
+    private HashMap<String, Talk> responseMap;
     private Handler mThreadHandler;
     private Runnable participantsLookup;
     private Runnable getResponse;
@@ -48,7 +49,6 @@ public class SyncActivity extends AppCompatActivity {
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
     private SharkServiceController mServiceController;
-    private List<Talk> responses;
     private Handler responseHandler;
 
     @Override
@@ -58,7 +58,6 @@ public class SyncActivity extends AppCompatActivity {
         createSyncButton();
         initializeParticipantsListView();
         participantsList = new ArrayList<>();
-        responses = new ArrayList<>();
         showAllListEntries();
 
         Context mContext = getApplicationContext();
@@ -117,15 +116,28 @@ public class SyncActivity extends AppCompatActivity {
         final Button button = (Button) findViewById(R.id.button_set_peers_and_sync);
         button.setVisibility(View.VISIBLE);
         button.setOnClickListener(new View.OnClickListener() {
+
             public void onClick(View v) {
                 mThreadHandler.removeCallbacks(participantsLookup);
-                responses.clear();
-
                 setParticipants();
                 Toast.makeText(getApplicationContext()
                         , "Requesting for synchronization. Please wait.", Toast.LENGTH_LONG).show();
-                syncProtocol.syncRequest(); // this is a Broadcast
-
+                syncProtocol.syncRequest(); // this sends a Broadcast
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    Toast.makeText(getApplicationContext()
+                            , "Synchronization failed", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                responseMap = syncProtocol.receiveResponse(); // this gets responses of the broadcast
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    Toast.makeText(getApplicationContext()
+                            , "Synchronization failed", Toast.LENGTH_LONG).show();
+                return;
+                }
                 processParticipantsSync();
                 //TODO Outputs an Log as HasMap, write this is a ListView !
                 // TODO show a failed sync process in ListView
@@ -139,22 +151,25 @@ public class SyncActivity extends AppCompatActivity {
         List<Participant> participantsList = contentProvider.getAllParticipants();
 
         if(participantsList.size()>0) {
-            HashMap<String, JSONObject> responseMap = fetchResponses();
 
             for (Participant participant : participantsList) {
                 String participantName = participant.getName();
+
                 boolean status = false;
-                if (responseMap.containsKey(participantName)) {
+                if (responseMap.containsKey(participantName) &&
+                        responseMap.get(participantName).getMessage().equals(SyncProtocol.VALUE_DELTA)) {
                     try {
-                        JSONObject delta = contentProvider.getUpdate(responseMap.get(participantName));
+                        JSONObject participantsDelta = new JSONObject(
+                                responseMap.get(participantName).toString());
+                        JSONObject delta = contentProvider.getUpdate(participantsDelta);
                         syncProtocol.sendDelta(delta);
-                        // TODO is it fast enough to get response?
-                        String finished = fetchResponses().get(participantName).getString(SyncProtocol.KEY_MESSAGE);
-                        status = finished.equals(SyncProtocol.VALUE_OK);
+                        Thread.sleep(4000);
+                        status = responseMap.get(participantName).getMessage()
+                                .equals(SyncProtocol.VALUE_OK);
                         if (status) {
-                            syncProtocol.sendOK();
+                            syncProtocol.sendClose();
                         }
-                    } catch (SyncableDatabaseException | JSONException e) {
+                    } catch (SyncableDatabaseException | JSONException |InterruptedException e) {
                         status = false;
                         Log.e(LOG_TAG, "Synchronization for Participant " +
                                 participantName + " failed: " + e.getMessage());
@@ -164,27 +179,6 @@ public class SyncActivity extends AppCompatActivity {
             }
         }
         return syncLog;
-    }
-
-    private HashMap<String, Talk> fetchResponses(){
-
-        long timeLimit = System.currentTimeMillis()+5000;
-        while(System.currentTimeMillis() < timeLimit) {
-            setResponses(syncProtocol.receiveResponse());
-            //wait for it
-        }
-
-        HashMap<String, Talk> responseMap = new HashMap<>();
-        for (Talk response : responses){
-            responseMap.put(
-                    response.getName(),
-                    response);
-        }
-        return responseMap;
-    }
-
-    private void setResponses(List<Talk> responses){
-        this.responses = responses;
     }
 
     private void setParticipants(){

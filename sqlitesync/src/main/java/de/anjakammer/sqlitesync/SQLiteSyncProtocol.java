@@ -2,7 +2,9 @@ package de.anjakammer.sqlitesync;
 
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
 
 public interface SQLiteSyncProtocol {
@@ -19,10 +21,9 @@ public interface SQLiteSyncProtocol {
 
     List<String> getPeers();
 
-    void sendDelta(Talk talk);
-    // Talk.toString();
+    void sendDelta(JSONObject delta);
 
-    List<Talk> receiveResponse() throws JSONException;
+    HashMap<String, Talk> receiveResponse() throws JSONException;
 
     void sendOK();
 

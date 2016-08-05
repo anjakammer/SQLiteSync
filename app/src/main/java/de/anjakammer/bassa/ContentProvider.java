@@ -14,6 +14,7 @@ import java.util.List;
 import de.anjakammer.bassa.models.Answer;
 import de.anjakammer.bassa.models.Participant;
 import de.anjakammer.bassa.models.Question;
+import de.anjakammer.sqlitesync.Talk;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 
