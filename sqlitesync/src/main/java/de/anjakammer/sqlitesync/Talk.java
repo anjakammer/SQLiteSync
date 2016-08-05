@@ -1,6 +1,8 @@
 package de.anjakammer.sqlitesync;
 
 
+import android.provider.Settings;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,6 +10,7 @@ import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 public class Talk {
 
+    private long lastSyncTime;
     private String name;
     private String message;
     private String interest;
@@ -17,6 +20,7 @@ public class Talk {
     public static final String KEY_NAME = "name";
     public static final String KEY_INTEREST = "dbId";
     public static final String KEY_DATA = "tables";
+    public static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
 
 
     public Talk(String name, String message) {
@@ -25,13 +29,15 @@ public class Talk {
     }
 
     public Talk(String response) throws SyncableDatabaseException {
-        JSONObject object = null;
+        JSONObject object;
         try {
             object = new JSONObject(response);
             this.name = object.getString(KEY_NAME);
             this.interest = object.getString(KEY_INTEREST);
             this.message = object.getString(KEY_MESSAGE);
             this.data = object.getJSONObject(KEY_DATA);
+            this.lastSyncTime = object.getLong(KEY_LAST_SYNC_TIME);
+
         } catch (JSONException e) {
             throw new SyncableDatabaseException(
                     "JSONObject error for creating response: " + e.getMessage());
@@ -68,6 +74,14 @@ public class Talk {
 
     public String getInterest() {
         return interest;
+    }
+
+    public long getLastSyncTime() {
+        return lastSyncTime;
+    }
+
+    public void setLastSyncTime(long lastSyncTime) {
+        this.lastSyncTime = lastSyncTime;
     }
 
     @Override

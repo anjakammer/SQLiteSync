@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -43,13 +44,13 @@ public class SyncActivity extends AppCompatActivity {
     private HashMap<String, Talk> responseMap;
     private Handler mThreadHandler;
     private Runnable participantsLookup;
-    private Runnable getResponse;
+
     private ContentProvider contentProvider;
     private ListView mParticipantsListView;
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList;
     private SharkServiceController mServiceController;
-    private Handler responseHandler;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,6 +99,40 @@ public class SyncActivity extends AppCompatActivity {
         };
 
         mThreadHandler.post(participantsLookup);
+
+        Runnable responsesLookup = new Runnable() {
+            @Override
+            public void run() {
+                HashMap<String, Talk> oldResponseMap = responseMap;
+                responseMap = syncProtocol.receiveResponse();
+                if(oldResponseMap.hashCode() != responseMap.hashCode()){
+                    Collection<Talk> responses = responseMap.values();
+                    for(Talk talk : responses){
+                        if(talk.getMessage().equals(SyncProtocol.VALUE_SYNCREQUEST)){
+                            processSyncRequest(talk);
+                        }
+                    }
+                }
+
+                mThreadHandler.postDelayed(this, 3000);
+            }
+        };
+
+        mThreadHandler.post(responsesLookup);
+    }
+
+    private void processSyncRequest(Talk talk) {
+        JSONObject participantsDelta;
+        JSONObject delta = new JSONObject();
+        try {
+            participantsDelta = new JSONObject(talk.toString());
+            //TODO getDelta but do not update, because this comes later
+            delta = contentProvider.getDelta(participantsDelta);
+        } catch (JSONException | SyncableDatabaseException e) {
+            Log.e(LOG_TAG, "Fetching Delta failed for Participant " +
+                    talk.getName() + " while SyncRequest processing: " + e.getMessage());
+        }
+        syncProtocol.sendDelta(delta);
     }
 
     @Override
@@ -129,14 +164,6 @@ public class SyncActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext()
                             , "Synchronization failed", Toast.LENGTH_LONG).show();
                     return;
-                }
-                responseMap = syncProtocol.receiveResponse(); // this gets responses of the broadcast
-                try {
-                    Thread.sleep(4000);
-                } catch (InterruptedException e) {
-                    Toast.makeText(getApplicationContext()
-                            , "Synchronization failed", Toast.LENGTH_LONG).show();
-                return;
                 }
                 processParticipantsSync();
                 //TODO Outputs an Log as HasMap, write this is a ListView !
@@ -178,6 +205,7 @@ public class SyncActivity extends AppCompatActivity {
                 syncLog.put(participantName, status);
             }
         }
+        responseMap.clear();
         return syncLog;
     }
 
