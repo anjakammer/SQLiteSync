@@ -20,7 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -41,14 +40,17 @@ public class SyncActivity extends AppCompatActivity {
 
 
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
+
+
+
     private HashMap<String, SyncProcess> responseMap = new HashMap<>();
     private Handler mThreadHandler;
     private ContentProvider contentProvider;
     private ListView mParticipantsListView;
     private SyncProtocol syncProtocol;
     private List<Participant> participantsList = new ArrayList<>();
-    private SharkServiceController mServiceController;
     private Runnable participantsLookup;
+    private ListView mSynchronizedListView;
 
 
     @Override
@@ -57,20 +59,14 @@ public class SyncActivity extends AppCompatActivity {
         setContentView(R.layout.list_view);
         createSyncButton();
         initializeParticipantsListView();
+        initializeSynchronizedListView();
         showAllListEntries();
 
         Context mContext = getApplicationContext();
         contentProvider = new ContentProvider(mContext);
 
-
-
-
-//        // TODO is this instance call necessary here? Should be in DataPort only
+        // TODO remove this
         L.setLogLevel(L.LOGLEVEL_ALL);
-//        mServiceController = SharkServiceController.getInstance(mContext);
-//        mServiceController.setOffer(contentProvider.getProfileName(), contentProvider.getDbId());
-//        mServiceController.startShark();
-//        // TODO
 
         syncProtocol = new SyncProtocol(
                 contentProvider.getProfileName(),contentProvider.getDbId(), mContext);
@@ -100,11 +96,11 @@ public class SyncActivity extends AppCompatActivity {
         Runnable responsesLookup = new Runnable() {
             @Override
             public void run() {
-                HashMap<String, SyncProcess> oldResponseMap = responseMap;
-                responseMap = syncProtocol.receiveResponse(responseMap);
+                HashMap<String, SyncProcess> oldResponseMap = getResponseMap();
+                HashMap<String, SyncProcess> responseMap = syncProtocol.receiveResponse(oldResponseMap);
                 String message;
                     // todo repsonsemap cannot be accessed
-//                if(oldResponseMap.size() != responseMap.size()){
+                if(oldResponseMap.size() != responseMap.size()){
                 List<SyncProcess> responses = new ArrayList<>(responseMap.values());
 
                     for(SyncProcess talk : responses){
@@ -114,6 +110,7 @@ public class SyncActivity extends AppCompatActivity {
                             case SyncProtocol.VALUE_SYNCREQUEST:
                                 sendDelta(talk);
                                 talk.setDeltaHasBeenSent();
+                                Log.d(LOG_TAG, "SyncRequest was sent to: " + talk.getName());
                                 break;
                             case SyncProtocol.VALUE_DELTA:
                                 if(talk.DeltaHasBeenSent()){
@@ -122,6 +119,7 @@ public class SyncActivity extends AppCompatActivity {
                                         delta = new JSONObject(talk.toString());
                                         contentProvider.updateDB(delta);
                                         talk.setWaitingForClose();
+                                        Log.d(LOG_TAG, "updated DB, wiating for close from: " + talk.getName());
                                     } catch (JSONException | SyncableDatabaseException e) {
                                         Log.e(LOG_TAG, "Synchronization for Participant " +
                                                 talk.getName() + " failed: " + e.getMessage());
@@ -131,15 +129,17 @@ public class SyncActivity extends AppCompatActivity {
                             case SyncProtocol.VALUE_OK:
                                 syncProtocol.sendClose(talk);
                                 talk.setCompleted();
+                                Log.d(LOG_TAG, "Completed through OK from: " + talk.getName());
                                 break;
                             case SyncProtocol.VALUE_CLOSE:
                                 talk.setCompleted();
-                                // TODO show a completet sync process in ListView
+                                Log.d(LOG_TAG, "Completed through CLOSE from: " + talk.getName());
                                 break;
                         }
+                                responseMap.put(talk.getName(), talk); // TODO write into responsemap !!!
                     }
-//                }
-
+               }
+                setResponseMap(responseMap);
                 mThreadHandler.postDelayed(this, 3000);
             }
         };
@@ -188,22 +188,18 @@ public class SyncActivity extends AppCompatActivity {
     }
 
     private void updateSyncList() {
-        HashMap<String, Boolean> syncLog = new HashMap<>();
+        List<Participant> syncLog = new ArrayList<>();
         List<Participant> participantsList = contentProvider.getAllParticipants();
 
         for (Participant participant : participantsList){
             String participantName = participant.getName();
             if(responseMap.containsKey(participantName)
                     && responseMap.get(participantName).isCompleted())
-                syncLog.put(participantName, true);
+                syncLog.add(participant);
         }
-        ArrayAdapter<Participant> ParticipantsArrayAdapter = new ArrayAdapter<Participant>(
-                this,
-                android.R.layout.activity_list_item,
-                participantsList) {
-        };
-        mParticipantsListView.setAdapter(ParticipantsArrayAdapter);
-        // TODO write this in the synclist
+        ArrayAdapter<Participant> adapter = (ArrayAdapter<Participant>) mSynchronizedListView.getAdapter();
+        adapter.clear();
+        adapter.addAll(syncLog);
     }
 
     private void setParticipants(){
@@ -222,6 +218,13 @@ public class SyncActivity extends AppCompatActivity {
         }
     }
 
+    public HashMap<String, SyncProcess> getResponseMap() {
+        return this.responseMap;
+    }
+
+    public void setResponseMap(HashMap<String, SyncProcess> responseMap) {
+        this.responseMap = responseMap;
+    }
     private void initializeParticipantsListView() {
         List<Participant> emptyListForInitialization = new ArrayList<>();
         mParticipantsListView = (ListView) findViewById(R.id.listview_items);
@@ -234,6 +237,20 @@ public class SyncActivity extends AppCompatActivity {
         };
         mParticipantsListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         mParticipantsListView.setAdapter(ParticipantsArrayAdapter);
+    }
+
+    private void initializeSynchronizedListView() {
+        List<Participant> emptyListForInitialization = new ArrayList<>();
+        mSynchronizedListView = (ListView) findViewById(R.id.listview_items_2);
+        TextView mParticipantsHeadline = (TextView) findViewById(R.id.headline_2);
+        mParticipantsHeadline.setText(R.string.headline_updated_participants);
+        ArrayAdapter<Participant> ParticipantsArrayAdapter = new ArrayAdapter<Participant>(
+                this,
+                android.R.layout.simple_list_item_checked,
+                emptyListForInitialization) {
+        };
+        mSynchronizedListView.setChoiceMode(ListView.CHOICE_MODE_NONE);
+        mSynchronizedListView.setAdapter(ParticipantsArrayAdapter);
     }
 
     private void showAllListEntries() {

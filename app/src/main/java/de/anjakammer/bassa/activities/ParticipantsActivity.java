@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -100,8 +99,8 @@ public class ParticipantsActivity extends AppCompatActivity {
     }
     private void initializeDeletedParticipantsListView() {
         List<Participant> emptyListForInitialization = new ArrayList<>();
-        mDeletedParticipantsListView = (ListView) findViewById(R.id.listview_deleted_items);
-        TextView mDeletedParticipantsHeadline = (TextView) findViewById(R.id.headline_deleted);
+        mDeletedParticipantsListView = (ListView) findViewById(R.id.listview_items_2);
+        TextView mDeletedParticipantsHeadline = (TextView) findViewById(R.id.headline_2);
         mDeletedParticipantsHeadline.setText(R.string.headline_deleted_participants);
         ArrayAdapter<Participant> DeletedParticipantsArrayAdapter = new ArrayAdapter<Participant>(
                 this,

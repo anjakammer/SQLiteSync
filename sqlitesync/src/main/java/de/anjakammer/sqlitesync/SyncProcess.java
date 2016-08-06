@@ -1,12 +1,17 @@
 package de.anjakammer.sqlitesync;
 
 
+import android.util.Log;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 public class SyncProcess {
+
+    public static final String LOG_TAG = SyncProcess.class.getSimpleName();
 
     private long lastSyncTime;
     private String name;
@@ -19,6 +24,10 @@ public class SyncProcess {
     public static final String KEY_INTEREST = "dbId";
     public static final String KEY_DATA = "tables";
     public static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
+    public static final String VALUE_SYNCREQUEST = "SYNCREQUEST";
+    public static final String VALUE_DELTA = "DELTA";
+    public static final String VALUE_OK = "OK";
+    public static final String VALUE_CLOSE = "CLOSE";
     private boolean waitingForClose;
     private boolean DeltaHasBeenSend;
     private boolean finished;
@@ -27,6 +36,7 @@ public class SyncProcess {
     public SyncProcess(String name, String message) {
         this.name = name;
         this.message = message;
+        this.data = new JSONObject();
     }
 
     public SyncProcess(JSONObject response) throws SyncableDatabaseException {
@@ -34,11 +44,16 @@ public class SyncProcess {
         try {
             this.name = response.getString(KEY_NAME);
             this.interest = response.getString(KEY_INTEREST);
-            // TODO evaluate the status out of the message
-            this.message = response.getString(KEY_MESSAGE);
             this.data = response.getJSONObject(KEY_DATA);
             this.lastSyncTime = response.getLong(KEY_LAST_SYNC_TIME);
 
+            this.message = response.getString(KEY_MESSAGE);
+            switch (message) {
+                case VALUE_SYNCREQUEST:
+                    setDeltaHasBeenSent();
+                    break;
+                // TODO is this necessary?
+            }
         } catch (JSONException e) {
             throw new SyncableDatabaseException(
                     "JSONObject error for creating response: " + e.getMessage());
@@ -128,8 +143,17 @@ public class SyncProcess {
 
     @Override
     public String toString() {
-        // TODO
-        return "todo";
+        JSONObject object = new JSONObject();
+        try {
+            object.put(KEY_MESSAGE, getMessage());
+        object.put(KEY_INTEREST, getInterest());
+            object.put(KEY_NAME, getName());
+            object.put(KEY_LAST_SYNC_TIME, getLastSyncTime());
+            object.put(KEY_DATA, getData());
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "SyncProcess to String failed for " + getName() + e.getMessage());
+        }
+        return object.toString();
     }
 
 }

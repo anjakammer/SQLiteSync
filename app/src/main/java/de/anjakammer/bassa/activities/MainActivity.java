@@ -147,8 +147,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeDeletedQuestionsListView() {
         List<Question> emptyListForInitialization = new ArrayList<>();
-        mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_deleted_items);
-        TextView mDeletedQuestionsHeadline = (TextView) findViewById(R.id.headline_deleted);
+        mDeletedQuestionsListView = (ListView) findViewById(R.id.listview_items_2);
+        TextView mDeletedQuestionsHeadline = (TextView) findViewById(R.id.headline_2);
         mDeletedQuestionsHeadline.setText(R.string.headline_deleted_questions);
         ArrayAdapter<Question> DeletedQuestionArrayAdapter = new ArrayAdapter<Question>(
                 this,
