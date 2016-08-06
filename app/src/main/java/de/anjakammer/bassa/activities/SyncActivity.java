@@ -41,15 +41,14 @@ public class SyncActivity extends AppCompatActivity {
 
 
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
-    private HashMap<String, SyncProcess> responseMap;
+    private HashMap<String, SyncProcess> responseMap = new HashMap<>();
     private Handler mThreadHandler;
-    private Runnable participantsLookup;
-
     private ContentProvider contentProvider;
     private ListView mParticipantsListView;
     private SyncProtocol syncProtocol;
-    private List<Participant> participantsList;
+    private List<Participant> participantsList = new ArrayList<>();
     private SharkServiceController mServiceController;
+    private Runnable participantsLookup;
 
 
     @Override
@@ -58,7 +57,6 @@ public class SyncActivity extends AppCompatActivity {
         setContentView(R.layout.list_view);
         createSyncButton();
         initializeParticipantsListView();
-        participantsList = new ArrayList<>();
         showAllListEntries();
 
         Context mContext = getApplicationContext();
@@ -98,7 +96,6 @@ public class SyncActivity extends AppCompatActivity {
             }
         };
 
-        mThreadHandler.post(participantsLookup);
 
         Runnable responsesLookup = new Runnable() {
             @Override
@@ -106,9 +103,9 @@ public class SyncActivity extends AppCompatActivity {
                 HashMap<String, SyncProcess> oldResponseMap = responseMap;
                 responseMap = syncProtocol.receiveResponse(responseMap);
                 String message;
-
-                if(oldResponseMap.hashCode() != responseMap.hashCode()){
-                    Collection<SyncProcess> responses = responseMap.values();
+                    // todo repsonsemap cannot be accessed
+//                if(oldResponseMap.size() != responseMap.size()){
+                List<SyncProcess> responses = new ArrayList<>(responseMap.values());
 
                     for(SyncProcess talk : responses){
                         message = talk.getMessage();
@@ -137,18 +134,27 @@ public class SyncActivity extends AppCompatActivity {
                                 break;
                             case SyncProtocol.VALUE_CLOSE:
                                 talk.setCompleted();
+                                // TODO show a completet sync process in ListView
                                 break;
                         }
-
-
                     }
-                }
+//                }
 
                 mThreadHandler.postDelayed(this, 3000);
             }
         };
 
+        Runnable syncStatusLookup = new Runnable() {
+            @Override
+            public void run() {
+                updateSyncList();
+                mThreadHandler.postDelayed(this, 3000);
+            }
+        };
+
+        mThreadHandler.post(participantsLookup);
         mThreadHandler.post(responsesLookup);
+        mThreadHandler.post(syncStatusLookup);
     }
 
     private void sendDelta(SyncProcess syncProcess) {
@@ -177,55 +183,27 @@ public class SyncActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext()
                         , "Requesting for synchronization. Please wait.", Toast.LENGTH_LONG).show();
                 syncProtocol.syncRequest(); // this sends a Broadcast
-                try {
-                    Thread.sleep(4000);
-                } catch (InterruptedException e) {
-                    Toast.makeText(getApplicationContext()
-                            , "Synchronization failed", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                processParticipantsSync();
-                //TODO Outputs an Log as HasMap, write this is a ListView !
-                // TODO show a failed sync process in ListView
-
             }
         });
     }
 
-    private HashMap<String, Boolean> processParticipantsSync() {
+    private void updateSyncList() {
         HashMap<String, Boolean> syncLog = new HashMap<>();
         List<Participant> participantsList = contentProvider.getAllParticipants();
 
-        if(participantsList.size()>0) {
-
-            for (Participant participant : participantsList) {
-                String participantName = participant.getName();
-
-                boolean status = false;
-                if (responseMap.containsKey(participantName) &&
-                        responseMap.get(participantName).getMessage().equals(SyncProtocol.VALUE_DELTA)) {
-                    try {
-                        JSONObject participantsDelta = new JSONObject(
-                                responseMap.get(participantName).toString());
-                        JSONObject delta = contentProvider.getUpdate(participantsDelta);
-                        syncProtocol.sendDelta(delta);
-                        Thread.sleep(4000);
-                        status = responseMap.get(participantName).getMessage()
-                                .equals(SyncProtocol.VALUE_OK);
-                        if (status) {
-                            // TODO syncProtocol.sendClose();
-                        }
-                    } catch (SyncableDatabaseException | JSONException |InterruptedException e) {
-                        status = false;
-                        Log.e(LOG_TAG, "Synchronization for Participant " +
-                                participantName + " failed: " + e.getMessage());
-                    }
-                }
-                syncLog.put(participantName, status);
-            }
+        for (Participant participant : participantsList){
+            String participantName = participant.getName();
+            if(responseMap.containsKey(participantName)
+                    && responseMap.get(participantName).isCompleted())
+                syncLog.put(participantName, true);
         }
-        responseMap.clear();
-        return syncLog;
+        ArrayAdapter<Participant> ParticipantsArrayAdapter = new ArrayAdapter<Participant>(
+                this,
+                android.R.layout.activity_list_item,
+                participantsList) {
+        };
+        mParticipantsListView.setAdapter(ParticipantsArrayAdapter);
+        // TODO write this in the synclist
     }
 
     private void setParticipants(){
