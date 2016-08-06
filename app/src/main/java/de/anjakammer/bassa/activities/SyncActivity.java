@@ -99,7 +99,6 @@ public class SyncActivity extends AppCompatActivity {
                 HashMap<String, SyncProcess> oldResponseMap = getResponseMap();
                 HashMap<String, SyncProcess> responseMap = syncProtocol.receiveResponse(oldResponseMap);
                 String message;
-                    // todo repsonsemap cannot be accessed
                 if(oldResponseMap.size() != responseMap.size()){
                 List<SyncProcess> responses = new ArrayList<>(responseMap.values());
 
@@ -110,7 +109,7 @@ public class SyncActivity extends AppCompatActivity {
                             case SyncProtocol.VALUE_SYNCREQUEST:
                                 sendDelta(talk);
                                 talk.setDeltaHasBeenSent();
-                                Log.d(LOG_TAG, "SyncRequest was sent to: " + talk.getName());
+                                Log.d(LOG_TAG, "SyncRequest was received from: " + talk.getName());
                                 break;
                             case SyncProtocol.VALUE_DELTA:
                                 if(talk.DeltaHasBeenSent()){
@@ -119,7 +118,7 @@ public class SyncActivity extends AppCompatActivity {
                                         delta = new JSONObject(talk.toString());
                                         contentProvider.updateDB(delta);
                                         talk.setWaitingForClose();
-                                        Log.d(LOG_TAG, "updated DB, wiating for close from: " + talk.getName());
+                                        Log.d(LOG_TAG, "updated DB, waiting for close from: " + talk.getName());
                                     } catch (JSONException | SyncableDatabaseException e) {
                                         Log.e(LOG_TAG, "Synchronization for Participant " +
                                                 talk.getName() + " failed: " + e.getMessage());
@@ -183,6 +182,7 @@ public class SyncActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext()
                         , "Requesting for synchronization. Please wait.", Toast.LENGTH_LONG).show();
                 syncProtocol.syncRequest(); // this sends a Broadcast
+                Log.d(LOG_TAG, "SyncRequest was send.");
             }
         });
     }
