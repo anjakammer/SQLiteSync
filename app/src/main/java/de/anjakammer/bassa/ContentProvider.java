@@ -5,7 +5,6 @@ import android.util.Log;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -14,7 +13,6 @@ import java.util.List;
 import de.anjakammer.bassa.models.Answer;
 import de.anjakammer.bassa.models.Participant;
 import de.anjakammer.bassa.models.Question;
-import de.anjakammer.sqlitesync.Talk;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 
@@ -397,7 +395,15 @@ public class ContentProvider {
         }
     }
 
-    public JSONObject getUpdate(JSONObject delta) throws SyncableDatabaseException {
-        return dbHandler.getUpdate(delta);
+    public JSONObject getUpdate(JSONObject participantDelta) throws SyncableDatabaseException {
+        return dbHandler.getUpdate(participantDelta);
+    }
+
+    public JSONObject getDelta(JSONObject delta) throws SyncableDatabaseException {
+        return dbHandler.getDelta(delta);
+    }
+
+    public void updateDB(JSONObject delta) throws SyncableDatabaseException {
+        dbHandler.updateDB(delta);
     }
 }

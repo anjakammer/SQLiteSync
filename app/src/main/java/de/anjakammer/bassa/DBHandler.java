@@ -194,16 +194,34 @@ public class DBHandler extends SQLiteOpenHelper{
         return SyncDBHelper.getInstanceName();
     }
 
-    public JSONObject getUpdate(JSONObject ParticipantDelta) throws SyncableDatabaseException {
+    public JSONObject getUpdate(JSONObject participantDelta) throws SyncableDatabaseException {
         JSONObject dBDelta;
         boolean status;
         try{
-            dBDelta = this.SyncDBHelper.getDelta(ParticipantDelta.getString(SQLiteSyncHelper.KEY_LAST_SYNC_TIME));
-            status = this.SyncDBHelper.updateDB(ParticipantDelta);
+            dBDelta = this.SyncDBHelper.getDelta(participantDelta.getString(SQLiteSyncHelper.KEY_LAST_SYNC_TIME));
+            status = this.SyncDBHelper.updateDB(participantDelta);
         }catch (JSONException e){
             throw new SyncableDatabaseException("Error while creating delta for synchronization: "+
             e.getMessage());
         }
         return (status)? dBDelta : null;
+    }
+
+    public JSONObject getDelta(JSONObject delta) throws SyncableDatabaseException {
+        try {
+            return this.SyncDBHelper.getDelta(delta.getString(SQLiteSyncHelper.KEY_LAST_SYNC_TIME));
+        }catch (JSONException e){
+            throw new SyncableDatabaseException("Error while creating delta for synchronization: "+
+                    e.getMessage());
+        }
+    }
+
+    public void updateDB(JSONObject delta) throws SyncableDatabaseException {
+        try {
+            this.SyncDBHelper.updateDB(delta);
+        } catch (JSONException | SyncableDatabaseException e) {
+            throw new SyncableDatabaseException("Error while creating updating DB for synchronization: "+
+                    e.getMessage());
+        }
     }
 }

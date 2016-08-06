@@ -23,9 +23,9 @@ public interface SQLiteSyncProtocol {
 
     void sendDelta(JSONObject delta);
 
-    HashMap<String, Talk> receiveResponse() throws JSONException;
+    HashMap<String, SyncProcess> receiveResponse(HashMap<String, SyncProcess> responseMap) throws JSONException;
 
-    void sendOK();
+    void sendOK(SyncProcess message);
 
-    void sendClose();
+    void sendClose(SyncProcess message);
 }

@@ -28,7 +28,7 @@ import de.anjakammer.bassa.ContentProvider;
 import de.anjakammer.bassa.R;
 import de.anjakammer.bassa.commService.SyncProtocol;
 import de.anjakammer.bassa.models.Participant;
-import de.anjakammer.sqlitesync.Talk;
+import de.anjakammer.sqlitesync.SyncProcess;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 
@@ -41,7 +41,7 @@ public class SyncActivity extends AppCompatActivity {
 
 
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
-    private HashMap<String, Talk> responseMap;
+    private HashMap<String, SyncProcess> responseMap;
     private Handler mThreadHandler;
     private Runnable participantsLookup;
 
@@ -103,14 +103,44 @@ public class SyncActivity extends AppCompatActivity {
         Runnable responsesLookup = new Runnable() {
             @Override
             public void run() {
-                HashMap<String, Talk> oldResponseMap = responseMap;
-                responseMap = syncProtocol.receiveResponse();
+                HashMap<String, SyncProcess> oldResponseMap = responseMap;
+                responseMap = syncProtocol.receiveResponse(responseMap);
+                String message;
+
                 if(oldResponseMap.hashCode() != responseMap.hashCode()){
-                    Collection<Talk> responses = responseMap.values();
-                    for(Talk talk : responses){
-                        if(talk.getMessage().equals(SyncProtocol.VALUE_SYNCREQUEST)){
-                            processSyncRequest(talk);
+                    Collection<SyncProcess> responses = responseMap.values();
+
+                    for(SyncProcess talk : responses){
+                        message = talk.getMessage();
+
+                        switch (message) {
+                            case SyncProtocol.VALUE_SYNCREQUEST:
+                                sendDelta(talk);
+                                talk.setDeltaHasBeenSent();
+                                break;
+                            case SyncProtocol.VALUE_DELTA:
+                                if(talk.DeltaHasBeenSent()){
+                                    JSONObject delta = null;
+                                    try {
+                                        delta = new JSONObject(talk.toString());
+                                        contentProvider.updateDB(delta);
+                                        talk.setWaitingForClose();
+                                    } catch (JSONException | SyncableDatabaseException e) {
+                                        Log.e(LOG_TAG, "Synchronization for Participant " +
+                                                talk.getName() + " failed: " + e.getMessage());
+                                    }
+                                }
+                                break;
+                            case SyncProtocol.VALUE_OK:
+                                syncProtocol.sendClose(talk);
+                                talk.setCompleted();
+                                break;
+                            case SyncProtocol.VALUE_CLOSE:
+                                talk.setCompleted();
+                                break;
                         }
+
+
                     }
                 }
 
@@ -121,31 +151,20 @@ public class SyncActivity extends AppCompatActivity {
         mThreadHandler.post(responsesLookup);
     }
 
-    private void processSyncRequest(Talk talk) {
-        JSONObject participantsDelta;
+    private void sendDelta(SyncProcess syncProcess) {
+        JSONObject participantDelta;
         JSONObject delta = new JSONObject();
         try {
-            participantsDelta = new JSONObject(talk.toString());
-            //TODO getDelta but do not update, because this comes later
-            delta = contentProvider.getDelta(participantsDelta);
+            participantDelta = new JSONObject(syncProcess.toString());
+            delta = contentProvider.getDelta(participantDelta);
         } catch (JSONException | SyncableDatabaseException e) {
             Log.e(LOG_TAG, "Fetching Delta failed for Participant " +
-                    talk.getName() + " while SyncRequest processing: " + e.getMessage());
+                    syncProcess.getName() + " while SyncRequest processing: " + e.getMessage());
         }
         syncProtocol.sendDelta(delta);
     }
 
-    @Override
-    public void onResume() {
-        mThreadHandler.post(participantsLookup);
-        super.onResume();
-    }
 
-    @Override
-    public void onPause() {
-        mThreadHandler.removeCallbacks(participantsLookup);
-        super.onPause();
-    }
 
     private void createSyncButton(){
         final Button button = (Button) findViewById(R.id.button_set_peers_and_sync);
@@ -194,7 +213,7 @@ public class SyncActivity extends AppCompatActivity {
                         status = responseMap.get(participantName).getMessage()
                                 .equals(SyncProtocol.VALUE_OK);
                         if (status) {
-                            syncProtocol.sendClose();
+                            // TODO syncProtocol.sendClose();
                         }
                     } catch (SyncableDatabaseException | JSONException |InterruptedException e) {
                         status = false;
@@ -244,5 +263,17 @@ public class SyncActivity extends AppCompatActivity {
         adapter.clear();
         adapter.addAll(participantsList);
         adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onResume() {
+        mThreadHandler.post(participantsLookup);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        mThreadHandler.removeCallbacks(participantsLookup);
+        super.onPause();
     }
 }
