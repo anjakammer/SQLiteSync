@@ -32,8 +32,8 @@ public class SQLiteSyncHelper {
                     COLUMN_VALUE + " TEXT NOT NULL );";
     public static final String SETTINGS_DROP = "DROP TABLE IF EXISTS " + TABLE_SETTINGS;
     private static final String KEY_IS_MASTER = "isMaster";
-    private static final String KEY_DB_ID = "DB_ID";
-    private static final String KEY_INSTANCE_NAME = "instanceName";
+    private static final String KEY_DB_ID = "dbId";
+    private static final String KEY_INSTANCE_NAME = "name";
     private static final String KEY_TABLES = "tables";
     private static final String KEY_MESSAGE = "message";
     public static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
@@ -164,7 +164,7 @@ public class SQLiteSyncHelper {
         boolean updated;
 
         Timestamp time =  new Timestamp(System.currentTimeMillis());
-        Log.d(LOG_TAG, "Started updating DB at" + time.toString() );
+        Log.d(LOG_TAG, "Started updating DB at: " + time.toString() );
 
         if (delta.getString(KEY_DB_ID).equals(this.dbID) &&
                 delta.getString(KEY_MESSAGE).equals(VALUE_DELTA)) {
@@ -264,6 +264,7 @@ public class SQLiteSyncHelper {
         JSONObject delta = new JSONObject();
         try {
             delta.put(KEY_MESSAGE, VALUE_DELTA);
+            delta.put(KEY_INSTANCE_NAME, getInstanceName());
             delta.put(KEY_DB_ID, dbId);
             delta.put(KEY_IS_MASTER, String.valueOf(this.isMaster));
             delta.put(KEY_LAST_SYNC_TIME, lastSyncTime);

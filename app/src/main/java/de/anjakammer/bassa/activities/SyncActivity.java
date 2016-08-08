@@ -14,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import net.sharkfw.system.L;
-import net.sharksystem.android.peer.SharkServiceController;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +26,7 @@ import de.anjakammer.bassa.ContentProvider;
 import de.anjakammer.bassa.R;
 import de.anjakammer.bassa.commService.SyncProtocol;
 import de.anjakammer.bassa.models.Participant;
+import de.anjakammer.sqlitesync.CommObject;
 import de.anjakammer.sqlitesync.SyncProcess;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
@@ -42,8 +42,6 @@ public class SyncActivity extends AppCompatActivity {
     public static final String LOG_TAG = SyncProtocol.class.getSimpleName();
 
 
-
-    private HashMap<String, SyncProcess> responseMap = new HashMap<>();
     private Handler mThreadHandler;
     private ContentProvider contentProvider;
     private ListView mParticipantsListView;
@@ -51,6 +49,9 @@ public class SyncActivity extends AppCompatActivity {
     private List<Participant> participantsList = new ArrayList<>();
     private Runnable participantsLookup;
     private ListView mSynchronizedListView;
+    private Runnable ioLookup;
+    private HashMap<String, SyncProcess> outputMap;
+    private HashMap<String, CommObject> inputMap;
 
 
     @Override
@@ -93,52 +94,80 @@ public class SyncActivity extends AppCompatActivity {
         };
 
 
-        Runnable responsesLookup = new Runnable() {
+        ioLookup = new Runnable() {
             @Override
             public void run() {
-                HashMap<String, SyncProcess> oldResponseMap = getResponseMap();
-                HashMap<String, SyncProcess> responseMap = syncProtocol.receiveResponse(oldResponseMap);
+                HashMap<String, CommObject> oldInputMap = getInputMap();
+                HashMap<String, CommObject> inputMap = syncProtocol.receiveResponse(oldInputMap);
+
+                HashMap<String, SyncProcess> outputMap = getOutputMap();
+
                 String message;
-                if(oldResponseMap.size() != responseMap.size()){
-                List<SyncProcess> responses = new ArrayList<>(responseMap.values());
+                String name;
 
-                    for(SyncProcess talk : responses){
-                        message = talk.getMessage();
+                List<CommObject> inputObjects = new ArrayList<>(inputMap.values());
 
-                        switch (message) {
-                            case SyncProtocol.VALUE_SYNCREQUEST:
-                                sendDelta(talk);
-                                talk.setDeltaHasBeenSent();
-                                Log.d(LOG_TAG, "SyncRequest was received from: " + talk.getName());
-                                break;
-                            case SyncProtocol.VALUE_DELTA:
-                                if(talk.DeltaHasBeenSent()){
-                                    JSONObject delta = null;
+                for(CommObject input : inputObjects){
+                    message = input.getMessage();
+                    name = input.getName();
+                    SyncProcess myResponse = new SyncProcess(input.getName());
+
+                    switch (message) {
+                        case SyncProtocol.VALUE_SYNCREQUEST:
+                            if (!outputMap.containsKey(name)){
+                                sendDelta(input);
+                                myResponse.setDeltaHasBeenSent();
+                                Log.d(LOG_TAG, "SyncRequest was received from: " + input.getName() +
+                                        " Delta has been send.");
+                            }
+                            break;
+                        case SyncProtocol.VALUE_DELTA:
+                            if (outputMap.containsKey(name)) {
+                                myResponse = outputMap.get(name);
+                                JSONObject delta = null;
+
+                                if (myResponse.DeltaHasBeenSent()) { // I am the syncRequest receiver
                                     try {
-                                        delta = new JSONObject(talk.toString());
+                                        delta = new JSONObject(input.toString());
                                         contentProvider.updateDB(delta);
-                                        talk.setWaitingForClose();
-                                        Log.d(LOG_TAG, "updated DB, waiting for close from: " + talk.getName());
+                                        myResponse.setWaitingForClose();
+                                        Log.d(LOG_TAG, "updated DB, waiting for close from: " + input.getName());
                                     } catch (JSONException | SyncableDatabaseException e) {
                                         Log.e(LOG_TAG, "Synchronization for Participant " +
-                                                talk.getName() + " failed: " + e.getMessage());
+                                                input.getName() + " failed: " + e.getMessage());
+                                    }
+                                } else { // I am the SyncRequester
+                                    try {
+                                        delta = new JSONObject(input.toString());
+                                        JSONObject myDelta = contentProvider.getUpdate(delta);
+                                        syncProtocol.sendDelta(new JSONObject(myDelta.toString()));
+                                        myResponse.setWaitingForOK();
+                                    } catch (JSONException | SyncableDatabaseException e) {
+                                        Log.e(LOG_TAG, "Synchronization for Participant " +
+                                                name + " failed: " + e.getMessage());
                                     }
                                 }
-                                break;
-                            case SyncProtocol.VALUE_OK:
-                                syncProtocol.sendClose(talk);
-                                talk.setCompleted();
-                                Log.d(LOG_TAG, "Completed through OK from: " + talk.getName());
-                                break;
-                            case SyncProtocol.VALUE_CLOSE:
-                                talk.setCompleted();
-                                Log.d(LOG_TAG, "Completed through CLOSE from: " + talk.getName());
-                                break;
-                        }
-                                responseMap.put(talk.getName(), talk); // TODO write into responsemap !!!
+                            }
+                            break;
+                        case SyncProtocol.VALUE_OK:
+                            myResponse = outputMap.get(name);
+                            myResponse.setCompleted();
+                            syncProtocol.sendClose(myResponse);
+                            Log.d(LOG_TAG, "Completed through OK from: " + name);
+                            break;
+                        case SyncProtocol.VALUE_CLOSE:
+                            myResponse = outputMap.get(name);
+                            myResponse.setCompleted();
+                            Log.d(LOG_TAG, "Completed through CLOSE from: " + name);
+                            break;
                     }
-               }
-                setResponseMap(responseMap);
+
+                    inputMap.put(input.getName(), input);
+                    outputMap.put(input.getName(), myResponse);
+                }
+
+                setInputMap(inputMap);
+                setOutputMap(outputMap);
                 mThreadHandler.postDelayed(this, 3000);
             }
         };
@@ -152,19 +181,20 @@ public class SyncActivity extends AppCompatActivity {
         };
 
         mThreadHandler.post(participantsLookup);
-        mThreadHandler.post(responsesLookup);
+        mThreadHandler.post(ioLookup);
         mThreadHandler.post(syncStatusLookup);
     }
 
-    private void sendDelta(SyncProcess syncProcess) {
+    private void sendDelta(CommObject receiver) {
         JSONObject participantDelta;
         JSONObject delta = new JSONObject();
+
         try {
-            participantDelta = new JSONObject(syncProcess.toString());
+            participantDelta = new JSONObject(receiver.toString());
             delta = contentProvider.getDelta(participantDelta);
         } catch (JSONException | SyncableDatabaseException e) {
             Log.e(LOG_TAG, "Fetching Delta failed for Participant " +
-                    syncProcess.getName() + " while SyncRequest processing: " + e.getMessage());
+                    receiver.getName() + " while SyncRequest processing: " + e.getMessage());
         }
         syncProtocol.sendDelta(delta);
     }
@@ -178,11 +208,20 @@ public class SyncActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 mThreadHandler.removeCallbacks(participantsLookup);
+                mThreadHandler.removeCallbacks(ioLookup);
                 setParticipants();
                 Toast.makeText(getApplicationContext()
                         , "Requesting for synchronization. Please wait.", Toast.LENGTH_LONG).show();
-                syncProtocol.syncRequest(); // this sends a Broadcast
-                Log.d(LOG_TAG, "SyncRequest was send.");
+                syncProtocol.syncRequest();
+                HashMap<String, SyncProcess> outputMap = getOutputMap();
+                for (Participant participant : contentProvider.getAllParticipants()) {
+                    String name = participant.getName();
+                    SyncProcess myRequest = new SyncProcess(name);
+                    outputMap.put(name, myRequest);
+                }
+                setOutputMap(outputMap);
+                mThreadHandler.postDelayed(ioLookup, 1000);
+                Log.d(LOG_TAG, "SyncRequest was sent.");
             }
         });
     }
@@ -193,8 +232,8 @@ public class SyncActivity extends AppCompatActivity {
 
         for (Participant participant : participantsList){
             String participantName = participant.getName();
-            if(responseMap.containsKey(participantName)
-                    && responseMap.get(participantName).isCompleted())
+            if(this.outputMap.containsKey(participantName)
+                    && this.outputMap.get(participantName).isCompleted())
                 syncLog.add(participant);
         }
         ArrayAdapter<Participant> adapter = (ArrayAdapter<Participant>) mSynchronizedListView.getAdapter();
@@ -218,12 +257,20 @@ public class SyncActivity extends AppCompatActivity {
         }
     }
 
-    public HashMap<String, SyncProcess> getResponseMap() {
-        return this.responseMap;
+    public HashMap<String, CommObject> getInputMap() {
+        return this.inputMap;
     }
 
-    public void setResponseMap(HashMap<String, SyncProcess> responseMap) {
-        this.responseMap = responseMap;
+    public void setInputMap(HashMap<String, CommObject> inputMap) {
+        this.inputMap = inputMap;
+    }
+
+    public HashMap<String, SyncProcess> getOutputMap() {
+        return this.outputMap;
+    }
+
+    public void setOutputMap(HashMap<String, SyncProcess> outputMap) {
+        this.outputMap = outputMap;
     }
     private void initializeParticipantsListView() {
         List<Participant> emptyListForInitialization = new ArrayList<>();

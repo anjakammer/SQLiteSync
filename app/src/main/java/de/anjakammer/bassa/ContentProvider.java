@@ -400,7 +400,9 @@ public class ContentProvider {
     }
 
     public JSONObject getDelta(JSONObject delta) throws SyncableDatabaseException {
-        return dbHandler.getDelta(delta);
+
+        JSONObject deltaToSend = dbHandler.getDelta(delta);
+        return deltaToSend;
     }
 
     public void updateDB(JSONObject delta) throws SyncableDatabaseException {

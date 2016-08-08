@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.List;
 
+import de.anjakammer.sqlitesync.CommObject;
 import de.anjakammer.sqlitesync.SyncProcess;
 import de.anjakammer.sqlitesync.SQLiteSyncProtocol;
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
@@ -35,9 +36,8 @@ public class SyncProtocol implements SQLiteSyncProtocol {
     }
 
     public void syncRequest(){
-        SyncProcess request = new SyncProcess(this.name, VALUE_SYNCREQUEST);
+        CommObject request = new CommObject(this.name, VALUE_SYNCREQUEST);
         request.setInterest(DbId);
-
         dataPort.sendData(request.toString());
     }
 
@@ -49,7 +49,7 @@ public class SyncProtocol implements SQLiteSyncProtocol {
         dataPort.sendData(delta.toString());
     }
 
-    public HashMap<String, SyncProcess> receiveResponse(HashMap<String, SyncProcess> responseMap){
+    public HashMap<String, CommObject> receiveResponse(HashMap<String, CommObject> inputMap){
         List<String> data = dataPort.getData();
 
         for (String item : data) {
@@ -57,33 +57,27 @@ public class SyncProtocol implements SQLiteSyncProtocol {
             try {
                 talk = new JSONObject(item);
                 if (talk.getString(KEY_DB_ID).equals(DbId)) {
-                    SyncProcess response = null;
-                    if (talk.getString(KEY_MESSAGE).equals(VALUE_SYNCREQUEST)) {
-                        String name = talk.getString(KEY_NAME);
-                        if (!responseMap.containsKey(name)) {
-                            response = new SyncProcess(new JSONObject(item));
-                        }
-                    }else{
-                        response = new SyncProcess(new JSONObject(item));
-                    }
-                    responseMap.put(name,response);
+                    inputMap.put(name,new CommObject(new JSONObject(item)));
                 }
             } catch (JSONException | SyncableDatabaseException e) {
                 Log.e(LOG_TAG, "Fetching data from broadcast failed: " +
                         item + " Error: "+  e.getMessage());
             }
         }
-        return responseMap;
+        return inputMap;
     }
 
 
     public void sendOK(SyncProcess message){
         message.setMessage(VALUE_OK);
+        message.setName(this.name);
         dataPort.sendData(message.toString());
     }
 
     public void sendClose(SyncProcess message){
         message.setMessage(VALUE_CLOSE);
+        message.setName(this.name);
+
         dataPort.sendData(message.toString());
     }
 }

@@ -3,75 +3,56 @@ package de.anjakammer.sqlitesync;
 
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
-public class SyncProcess {
+public class CommObject {
 
-    public static final String LOG_TAG = SyncProcess.class.getSimpleName();
+    public static final String LOG_TAG = CommObject.class.getSimpleName();
 
+    private long lastSyncTime;
     private String name;
     private String message;
     private String interest;
+    private JSONObject data;
 
     public static final String KEY_MESSAGE = "message";
     public static final String KEY_NAME = "name";
     public static final String KEY_INTEREST = "dbId";
-    private boolean waitingForClose;
-    private boolean waitingForOk;
-    private boolean DeltaHasBeenSend;
-    private boolean finished;
+    public static final String KEY_DATA = "tables";
+    public static final String KEY_LAST_SYNC_TIME = "lastSyncTime";
 
 
-    public SyncProcess(String name) {
+    public CommObject(String name, String message) {
         this.name = name;
+        this.message = message;
+        this.data = new JSONObject();
     }
 
-    public SyncProcess(JSONObject response) throws SyncableDatabaseException {
+    public CommObject(JSONObject response) throws SyncableDatabaseException {
 
         try {
             this.name = response.getString(KEY_NAME);
-            this.message = response.getString(KEY_MESSAGE);
             this.interest = response.getString(KEY_INTEREST);
+            this.data = response.getJSONObject(KEY_DATA);
+            this.lastSyncTime = response.getLong(KEY_LAST_SYNC_TIME);
+
+            this.message = response.getString(KEY_MESSAGE);
         } catch (JSONException e) {
             throw new SyncableDatabaseException(
-                    "JSONObject error for creating SyncProcess: " + e.getMessage());
+                    "JSONObject error for creating commObject: " + e.getMessage());
         }
     }
 
-    public void setDeltaHasBeenSent(){
-        this.DeltaHasBeenSend = true;
+
+    public JSONObject getData() {
+        return data;
     }
 
-    public boolean DeltaHasBeenSent(){
-        return this.DeltaHasBeenSend;
-    }
-
-    public void setWaitingForClose(){
-        this.waitingForClose = true;
-    }
-
-    public boolean isWaitingForClose(){
-        return this.waitingForClose;
-    }
-
-    public void setWaitingForOK(){
-        this.waitingForOk = true;
-    }
-
-    public boolean isWaitingForOK(){
-        return this.waitingForOk;
-    }
-
-    public void setCompleted(){
-        this.finished = true;
-    }
-
-    public boolean isCompleted(){
-        return this.finished;
+    public void setData(JSONObject data) {
+        this.data = data;
     }
 
     public String getMessage() {
@@ -98,6 +79,14 @@ public class SyncProcess {
         return interest;
     }
 
+    public long getLastSyncTime() {
+        return lastSyncTime;
+    }
+
+    public void setLastSyncTime(long lastSyncTime) {
+        this.lastSyncTime = lastSyncTime;
+    }
+
     @Override
     public int hashCode() {
         return this.name.hashCode() + this.message.hashCode();
@@ -111,7 +100,7 @@ public class SyncProcess {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SyncProcess other = (SyncProcess) obj;
+        CommObject other = (CommObject) obj;
         return !(this.name.equals(other.getName()) || this.message.equals(other.getMessage()));
     }
 
@@ -120,10 +109,12 @@ public class SyncProcess {
         JSONObject object = new JSONObject();
         try {
             object.put(KEY_MESSAGE, getMessage());
+            object.put(KEY_INTEREST, getInterest());
             object.put(KEY_NAME, getName());
-
+            object.put(KEY_LAST_SYNC_TIME, getLastSyncTime());
+            object.put(KEY_DATA, getData());
         } catch (JSONException e) {
-            Log.e(LOG_TAG, "SyncProcess to String failed for " + getName() + e.getMessage());
+            Log.e(LOG_TAG, "commObject to String failed for " + getName() + e.getMessage());
         }
         return object.toString();
     }

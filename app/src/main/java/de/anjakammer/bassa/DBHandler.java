@@ -220,7 +220,7 @@ public class DBHandler extends SQLiteOpenHelper{
         try {
             this.SyncDBHelper.updateDB(delta);
         } catch (JSONException | SyncableDatabaseException e) {
-            throw new SyncableDatabaseException("Error while creating updating DB for synchronization: "+
+            throw new SyncableDatabaseException("Error while updating DB for synchronization: "+
                     e.getMessage());
         }
     }
