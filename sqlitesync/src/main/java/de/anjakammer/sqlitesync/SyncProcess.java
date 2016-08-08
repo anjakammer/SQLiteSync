@@ -3,11 +3,8 @@ package de.anjakammer.sqlitesync;
 
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import de.anjakammer.sqlitesync.exceptions.SyncableDatabaseException;
 
 public class SyncProcess {
 

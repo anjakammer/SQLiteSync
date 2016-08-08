@@ -384,8 +384,8 @@ public class ContentProvider {
                 answerValues.put(DBHandler.COLUMN_A_QUESTION_ID, questionId);
                 answerValues.put(DBHandler.COLUMN_A_PARTICIPANT_ID, participantId);
                 dbHandler.insertIfNotExists(DBHandler.TABLE_ANSWERS, answerValues);
-                updateParticipant(participantId, participant.getName(), true);
             }
+                updateParticipant(participantId, participant.getName(), true);
         }else{
             List<Answer> answerList = getAnswersOfParticipant(participantId);
             for (Answer answer : answerList) {

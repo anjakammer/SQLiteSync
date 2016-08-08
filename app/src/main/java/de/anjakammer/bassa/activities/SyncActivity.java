@@ -50,8 +50,8 @@ public class SyncActivity extends AppCompatActivity {
     private Runnable participantsLookup;
     private ListView mSynchronizedListView;
     private Runnable ioLookup;
-    private HashMap<String, SyncProcess> outputMap;
-    private HashMap<String, CommObject> inputMap;
+    private HashMap<String, SyncProcess> outputMap = new HashMap<>();
+    private HashMap<String, CommObject> inputMap = new HashMap<>();
 
 
     @Override
@@ -126,7 +126,7 @@ public class SyncActivity extends AppCompatActivity {
                                 myResponse = outputMap.get(name);
                                 JSONObject delta = null;
 
-                                if (myResponse.DeltaHasBeenSent()) { // I am the syncRequest receiver
+                                if (myResponse.DeltaHasBeenSent()) { // I am the SyncRequest receiver
                                     try {
                                         delta = new JSONObject(input.toString());
                                         contentProvider.updateDB(delta);
@@ -150,19 +150,22 @@ public class SyncActivity extends AppCompatActivity {
                             }
                             break;
                         case SyncProtocol.VALUE_OK:
-                            myResponse = outputMap.get(name);
-                            myResponse.setCompleted();
-                            syncProtocol.sendClose(myResponse);
-                            Log.d(LOG_TAG, "Completed through OK from: " + name);
+                            if(myResponse.isWaitingForOK()){
+                                myResponse = outputMap.get(name);
+                                myResponse.setCompleted();
+                                syncProtocol.sendClose(myResponse);
+                                Log.d(LOG_TAG, "Completed through OK from: " + name);
+                            }
                             break;
                         case SyncProtocol.VALUE_CLOSE:
-                            myResponse = outputMap.get(name);
-                            myResponse.setCompleted();
-                            Log.d(LOG_TAG, "Completed through CLOSE from: " + name);
+                            if(myResponse.isWaitingForClose()){
+                                myResponse = outputMap.get(name);
+                                myResponse.setCompleted();
+                                Log.d(LOG_TAG, "Completed through CLOSE from: " + name);
+                            }
                             break;
                     }
 
-                    inputMap.put(input.getName(), input);
                     outputMap.put(input.getName(), myResponse);
                 }
 
