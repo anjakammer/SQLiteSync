@@ -15,11 +15,9 @@ public class SyncProcess {
 
     private String name;
     private String message;
-    private String interest;
 
     public static final String KEY_MESSAGE = "message";
     public static final String KEY_NAME = "name";
-    public static final String KEY_INTEREST = "dbId";
     private boolean waitingForClose;
     private boolean waitingForOk;
     private boolean DeltaHasBeenSend;
@@ -28,18 +26,6 @@ public class SyncProcess {
 
     public SyncProcess(String name) {
         this.name = name;
-    }
-
-    public SyncProcess(JSONObject response) throws SyncableDatabaseException {
-
-        try {
-            this.name = response.getString(KEY_NAME);
-            this.message = response.getString(KEY_MESSAGE);
-            this.interest = response.getString(KEY_INTEREST);
-        } catch (JSONException e) {
-            throw new SyncableDatabaseException(
-                    "JSONObject error for creating SyncProcess: " + e.getMessage());
-        }
     }
 
     public void setDeltaHasBeenSent(){
@@ -90,13 +76,6 @@ public class SyncProcess {
         this.name = name;
     }
 
-    public void setInterest(String interest) {
-        this.interest = interest;
-    }
-
-    public String getInterest() {
-        return interest;
-    }
 
     @Override
     public int hashCode() {
