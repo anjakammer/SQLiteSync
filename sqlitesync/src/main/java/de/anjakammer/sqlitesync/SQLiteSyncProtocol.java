@@ -25,7 +25,7 @@ public interface SQLiteSyncProtocol {
 
     HashMap<String, CommObject> receiveResponse(HashMap<String, CommObject> inputMap);
 
-    void sendOK(SyncProcess message);
+    void sendOK();
 
-    void sendClose(SyncProcess message);
+    void sendClose();
 }

@@ -12,9 +12,11 @@ public class SyncProcess {
 
     private String name;
     private String message;
+    private String interest;
 
     public static final String KEY_MESSAGE = "message";
     public static final String KEY_NAME = "name";
+    public static final String KEY_INTEREST = "dbId";
     private boolean waitingForClose;
     private boolean waitingForOk;
     private boolean DeltaHasBeenSend;
@@ -73,7 +75,13 @@ public class SyncProcess {
         this.name = name;
     }
 
+    public String getInterest() {
+        return interest;
+    }
 
+    public void setInterest(String interest) {
+        this.interest = interest;
+    }
     @Override
     public int hashCode() {
         return this.name.hashCode() + this.message.hashCode();
@@ -97,6 +105,7 @@ public class SyncProcess {
         try {
             object.put(KEY_MESSAGE, getMessage());
             object.put(KEY_NAME, getName());
+            object.put(KEY_INTEREST, getInterest());
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, "SyncProcess to String failed for " + getName() + e.getMessage());

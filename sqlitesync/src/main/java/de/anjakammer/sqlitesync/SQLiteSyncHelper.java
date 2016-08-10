@@ -169,43 +169,38 @@ public class SQLiteSyncHelper {
         if (delta.getString(KEY_DB_ID).equals(this.dbID) &&
                 delta.getString(KEY_MESSAGE).equals(VALUE_DELTA)) {
 
-            JSONArray tables = delta.getJSONArray(KEY_TABLES);
-
+            JSONObject tables = delta.getJSONObject(KEY_TABLES);
 
             // Iterates through all tables
-            for (int i = 0; i < tables.length(); i++) {
-                JSONObject table = tables.getJSONObject(i);
-                String tableName = table.names().getString(0);
+            JSONArray tableNames = tables.names();
+            for (int i = 0; i < tableNames.length(); i++) {
+                String tableName = tables.names().getString(i);
+                JSONArray table = tables.getJSONArray(tableName);
 
                 // Iterates through all tuples
                 for (int ii = 0; ii < table.length(); ii++) {
-                    JSONArray tuples = table.getJSONArray(tableName);
+                    JSONObject tuple = table.getJSONObject(ii);
 
+                    ContentValues values = new ContentValues();
                     // Iterates through tuple
-                    for (int iii = 0; iii < tuples.length(); iii++) {
-                        JSONObject tuple = tuples.getJSONObject(iii);
-                        JSONArray tupleKeys = tuple.names();
+                    for (int iii = 0; iii < tuple.length(); iii++) {
+                        String key = tuple.names().getString(iii);
 
-                        ContentValues values = new ContentValues();
-
-                        // Iterates through all keys
-                        for (int iiii = 0; iiii < tupleKeys.length(); iiii++) {
-                            String key = tupleKeys.getString(iiii);
-                            values.put(key, tuple.getString(key));
-                        }
-                        // it is needed, that the tuple do exist. It just updates, no inserting
-                        updated = update(tableName, values.getAsLong("_id"), values);
-                        if (!updated) {
-                            return false;
-                        }
+                        values.put(key, tuple.getString(key));
                     }
+                    // it is needed, that the tuple do exist. It just updates, no inserting
+                    updated = update(tableName, values.getAsLong("_id"), values);
+                    if (!updated) {
+                        return false;
+                    }
+
                 }
             }
         }else{
             throw new SyncableDatabaseException("The provided data are no Database-delta");
         }
         Timestamp endtime =  new Timestamp(System.currentTimeMillis());
-        Log.d(LOG_TAG, "Ended updating DB at" + endtime.toString() );
+        Log.d(LOG_TAG, "Ended updating DB at " + endtime.toString() );
         return true;
     }
 
@@ -448,6 +443,6 @@ public class SQLiteSyncHelper {
                         "Column "+ column + "does not exists in KeySet. Unable to insert item.");
             }
         }
-       return this.db.insertWithOnConflict(table, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+        return this.db.insertWithOnConflict(table, null, values, SQLiteDatabase.CONFLICT_IGNORE);
     }
 }

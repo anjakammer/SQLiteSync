@@ -98,18 +98,6 @@ public class DBHandler extends SQLiteOpenHelper{
         if(this.SyncDBHelper == null){
             this.SyncDBHelper = new SQLiteSyncHelper(db, IS_MASTER, DB_ID);
         }
-
-//        try {
-        // TODO rerender view after updating the DB !
-//            if(SyncDBHelper.updateDB(new TestPeer(this).getPeerDelta())){
-//                Log.d(LOG_TAG, "successfully DB update");
-//            }
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        } catch (SyncableDatabaseException e) {
-//            e.printStackTrace();
-//            Log.d(LOG_TAG, "unable to update DB " + e.getMessage());
-//        }
     }
 
     @Override
@@ -127,7 +115,6 @@ public class DBHandler extends SQLiteOpenHelper{
             db.execSQL(PARTICIPANTS_CREATE);
             this.SyncDBHelper.makeTableSyncable(TABLE_PARTICIPANTS);
 
-
         }
         catch (Exception e) {
             Log.e(LOG_TAG, "creating failed for table onCreate: "+ e.getMessage());
@@ -136,7 +123,6 @@ public class DBHandler extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO save data before dropping?
         db.execSQL(QUESTIONS_DROP);
         db.execSQL(ANSWERS_DROP);
         db.execSQL(PARTICIPANTS_DROP);

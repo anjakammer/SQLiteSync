@@ -66,9 +66,6 @@ public class SyncActivity extends AppCompatActivity {
         Context mContext = getApplicationContext();
         contentProvider = new ContentProvider(mContext);
 
-        // TODO remove this
-        L.setLogLevel(L.LOGLEVEL_ALL);
-
         syncProtocol = new SyncProtocol(
                 contentProvider.getProfileName(),contentProvider.getDbId(), mContext);
 
@@ -110,6 +107,7 @@ public class SyncActivity extends AppCompatActivity {
                 for(CommObject input : inputObjects){
                     message = input.getMessage();
                     name = input.getName();
+
                     SyncProcess myResponse = new SyncProcess(input.getName());
 
                     switch (message) {
@@ -117,8 +115,9 @@ public class SyncActivity extends AppCompatActivity {
                             if (!outputMap.containsKey(name)){
                                 sendDelta(input);
                                 myResponse.setDeltaHasBeenSent();
-                                Log.d(LOG_TAG, "SyncRequest was received from: " + input.getName() +
-                                        " Delta has been send.");
+                                outputMap.put(name, myResponse);
+                                Log.d(LOG_TAG, "SyncRequest was received from: " + name +
+                                        " Delta has been sent.");
                             }
                             break;
                         case SyncProtocol.VALUE_DELTA:
@@ -126,22 +125,29 @@ public class SyncActivity extends AppCompatActivity {
                                 myResponse = outputMap.get(name);
                                 JSONObject delta = null;
 
-                                if (myResponse.DeltaHasBeenSent()) { // I am the SyncRequest receiver
+                                if (myResponse.DeltaHasBeenSent()
+                                        && !myResponse.isWaitingForClose()) { // I am the SyncRequest receiver
                                     try {
                                         delta = new JSONObject(input.toString());
                                         contentProvider.updateDB(delta);
                                         myResponse.setWaitingForClose();
-                                        Log.d(LOG_TAG, "updated DB, waiting for close from: " + input.getName());
+                                        syncProtocol.sendOK();
+                                        outputMap.put(name, myResponse);
+                                        Log.d(LOG_TAG, "updated DB, waiting for close from: " + name);
                                     } catch (JSONException | SyncableDatabaseException e) {
                                         Log.e(LOG_TAG, "Synchronization for Participant " +
-                                                input.getName() + " failed: " + e.getMessage());
+                                                name + " failed: " + e.getMessage());
                                     }
-                                } else { // I am the SyncRequester
+                                }
+                                if(!myResponse.DeltaHasBeenSent() && !myResponse.isWaitingForOK()) { // I am the SyncRequester
                                     try {
                                         delta = new JSONObject(input.toString());
                                         JSONObject myDelta = contentProvider.getUpdate(delta);
                                         syncProtocol.sendDelta(new JSONObject(myDelta.toString()));
                                         myResponse.setWaitingForOK();
+                                        outputMap.put(name, myResponse);
+                                        Log.d(LOG_TAG, "Delta was received from: " + name +
+                                                " updated DB, sent my own Delta. Waiting for OK.");
                                     } catch (JSONException | SyncableDatabaseException e) {
                                         Log.e(LOG_TAG, "Synchronization for Participant " +
                                                 name + " failed: " + e.getMessage());
@@ -153,7 +159,8 @@ public class SyncActivity extends AppCompatActivity {
                             if(myResponse.isWaitingForOK()){
                                 myResponse = outputMap.get(name);
                                 myResponse.setCompleted();
-                                syncProtocol.sendClose(myResponse);
+                                syncProtocol.sendClose();
+                                outputMap.put(name, myResponse);
                                 Log.d(LOG_TAG, "Completed through OK from: " + name);
                             }
                             break;
@@ -161,12 +168,11 @@ public class SyncActivity extends AppCompatActivity {
                             if(myResponse.isWaitingForClose()){
                                 myResponse = outputMap.get(name);
                                 myResponse.setCompleted();
+                                outputMap.put(name, myResponse);
                                 Log.d(LOG_TAG, "Completed through CLOSE from: " + name);
                             }
                             break;
                     }
-
-                    outputMap.put(input.getName(), myResponse);
                 }
 
                 setInputMap(inputMap);

@@ -57,7 +57,7 @@ public class SyncProtocol implements SQLiteSyncProtocol {
             try {
                 talk = new JSONObject(item);
                 if (talk.getString(KEY_DB_ID).equals(DbId)) {
-                    inputMap.put(talk.getString(KEY_NAME),new CommObject(new JSONObject(item)));
+                    inputMap.put(talk.getString(KEY_NAME), new CommObject(new JSONObject(item)));
                 }
             } catch (JSONException | SyncableDatabaseException e) {
                 Log.e(LOG_TAG, "Fetching data from broadcast failed: " +
@@ -68,16 +68,17 @@ public class SyncProtocol implements SQLiteSyncProtocol {
     }
 
 
-    public void sendOK(SyncProcess message){
-        message.setMessage(VALUE_OK);
-        message.setName(this.name);
+    public void sendOK(){
+        CommObject message = new CommObject(this.name,VALUE_OK );
+        message.setInterest(DbId);
+        message.setData(new JSONObject());
         dataPort.sendData(message.toString());
     }
 
-    public void sendClose(SyncProcess message){
-        message.setMessage(VALUE_CLOSE);
-        message.setName(this.name);
-
+    public void sendClose(){
+        CommObject message = new CommObject(this.name,VALUE_CLOSE );
+        message.setInterest(DbId);
+        message.setData(new JSONObject());
         dataPort.sendData(message.toString());
     }
 }
